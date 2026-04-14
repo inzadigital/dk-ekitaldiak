@@ -1070,8 +1070,7 @@ Durango Kirolak`;
       txt=`EKITALDIA: ${e.nombre}
 DATA: ${fmtFecha(e.fecha,'eu')}${e.fechaFin?' → '+fmtFecha(e.fechaFin,'eu'):''}
 ORDUTEGIA: ${e.horaIni||'—'} – ${e.horaFin||'—'}
-INSTALAZIOA: ${e.instalacion||'—'}${e.besteak?'
-BESTEAK: '+e.besteak:''}
+INSTALAZIOA: ${e.instalacion||'—'}${e.besteak?' BESTEAK: '+e.besteak:''}
 
 EKITALDIA ANTOLATZEKO BAIMENA (baldintzak betetzen badira soilik)
 
@@ -1079,8 +1078,7 @@ Ekitaldia hasi baino ${e.plazoAntes||15} egun lehenago, bidali mezu elektroniko 
 ${ADMIN_EMAIL}
 
 Posta horretan, honako hau erantsi behar da:
-${pendItems.length>0?pendItems.map(p=>'  • '+p).join('
-'):'  (Dokumentazio guztia jasota ✓)'}
+${pendItems.length>0?pendItems.map(p=>'  • '+p).join('\n'):'  (Dokumentazio guztia jasota ✓)'}
 
 Horrez gain:
   • Durangoko Udalak hizkuntza-normalizazioari buruz duen araudia bete beharko du.
@@ -1116,8 +1114,7 @@ Durango Kirolak`;
       txt=`EVENTO: ${e.nombre}
 FECHA: ${fmtFecha(e.fecha,'es')}${e.fechaFin?' → '+fmtFecha(e.fechaFin,'es'):''}
 HORARIO: ${e.horaIni||'—'} – ${e.horaFin||'—'}
-INSTALACIÓN: ${e.instalacion||'—'}${e.besteak?'
-OTROS: '+e.besteak:''}
+INSTALACIÓN: ${e.instalacion||'—'}${e.besteak?' OTROS: '+e.besteak:''}
 
 Tienen el PERMISO para organizar el evento (condicionado al cumplimiento de los requisitos).
 
@@ -1125,8 +1122,7 @@ ${e.plazoAntes||15} días antes de comenzar el evento, enviar un correo electró
 ${ADMIN_EMAIL}
 
 Adjuntando en el mismo correo lo siguiente:
-${pendItems.length>0?pendItems.map(p=>'  • '+p).join('
-'):'  (Toda la documentación recibida ✓)'}
+${pendItems.length>0?pendItems.map(p=>'  • '+p).join('\n'):'  (Toda la documentación recibida ✓)'}
 
 Adicionalmente:
   • Deberá cumplir la normativa del Ayuntamiento de Durango en materia de normalización lingüística.
@@ -1171,8 +1167,7 @@ function sortuKontsulta(){
     '  • Material eta zerbitzu eskakizunak posible dira? / ¿Materiales viables?',
     '  • Arazo edo mugaren bat bada, jakinarazi. / Si hay limitaciones, comunicarlo.',sep,
     'Eskerrik asko / Gracias — DK Ekitaldiak',
-  ].filter(l=>l!=='').join('
-');
+  ].filter(l=>l!=='').join('\n');
   document.getElementById('komunikazio-text').value=txt;
   document.getElementById('komunikazio-box').style.display='block';
   document.getElementById('komunikazio-box').scrollIntoView({behavior:'smooth'});
@@ -1198,16 +1193,11 @@ function sortuKomunikazio(){
     e.besteak?`📦 ${e.besteak}`:'',sep,
     `📄 Dokumentazio aurrea / Plazo: ${dEU}`,
     `📧 ${ADMIN_EMAIL}`,sep,
-    pend.length>0?'⚠️ Zain dagoena / Pendiente:
-'+pend.map(p=>'  • '+p).join('
-'):'✅ Dokumentazio guztia jasota / Toda la documentación recibida',
-    e.motivoUkapen&&e.estado==='ukatua'?sep+'
-❌ Ukapen arrazoia: '+e.motivoUkapen:'',
-    e.notas?sep+'
-📝 Oharrak: '+e.notas:'',sep,
+    pend.length>0?'⚠️ Zain dagoena / Pendiente:\n'+pend.map(p=>'  • '+p).join('\n'):'✅ Dokumentazio guztia jasota / Toda la documentación recibida',
+    e.motivoUkapen&&e.estado==='ukatua'?sep+'\n❌ Ukapen arrazoia: '+e.motivoUkapen:'',
+    e.notas?sep+'\n📝 Oharrak: '+e.notas:'',sep,
     '🔗 Erreferentzia ofiziala: DK Ekitaldiak',sep2,'Durango Kirolak',
-  ].filter(l=>l!=='').join('
-');
+  ].filter(l=>l!=='').join('\n');
   document.getElementById('komunikazio-text').value=txt;
   document.getElementById('komunikazio-box').style.display='block';
   document.getElementById('komunikazio-box').scrollIntoView({behavior:'smooth'});
