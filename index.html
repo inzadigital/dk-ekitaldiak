@@ -821,7 +821,7 @@ function renderDetaila(){
   const ob=document.getElementById('d-oharra-box');
   if(ant&&ant.oharra){ob.innerHTML='<div class="oharra-box danger">⚠️ <strong>'+e.antolatzailea+'</strong> — '+ant.oharra+' <button class="btn btn-xs btn-secondary" style="margin-left:8px" onclick="editaOharra()">✏️ Editatu</button></div>';}
   else{ob.innerHTML='<div class="oharra-box">👤 <strong>'+(e.antolatzailea||'—')+'</strong> — Aurrekaririk ez. <button class="btn btn-xs btn-secondary" style="margin-left:8px" onclick="editaOharra()">⚠️ Oharra gehitu</button></div>';}
-  document.getElementById('d-estado-sel').innerHTML=ESTADOS.map(s=>'<button class="estado-btn'+(e.estado===s.id?' sel':'')+'" style="background:'+s.bg+';color:'+s.color+'" onclick="aldatuEgoera(''+s.id+'')">'+s.label+'</button>').join('');
+  document.getElementById('d-estado-sel').innerHTML=ESTADOS.map(s=>'<button class="estado-btn'+(e.estado===s.id?' sel':'')+' " style="background:'+s.bg+';color:'+s.color+'" data-sid="'+s.id+'" onclick="aldatuEgoera(this.dataset.sid)">'+s.label+'</button>').join('');
   renderChecklist();renderTimeline();renderLog();
   document.getElementById('erantzun-box').style.display='none';
   document.getElementById('komunikazio-box').style.display='none';
@@ -946,7 +946,7 @@ function acSearch(val){
   const q=val.toLowerCase();
   const m=antolatzaileak.filter(a=>a.izena.toLowerCase().includes(q)).slice(0,6);
   if(!m.length){list.classList.remove('open');return;}
-  list.innerHTML=m.map(a=>'<div class="ac-item" onclick="selAnt(''+a.izena.replace(/'/g,"\'")+'')">'+'<span>'+a.izena+'</span>'+(a.oharra?'<span class="ac-oharra">⚠️ Oharra</span>':'')+'</div>').join('');
+  list.innerHTML=m.map(a=>'<div class="ac-item" onclick="selAnt(this.dataset.n)" data-n="'+a.izena.replace(/"/g,'&quot;')+'">'+'<span>'+a.izena+'</span>'+(a.oharra?'<span class="ac-oharra">⚠️ Oharra</span>':'')+'</div>').join('');
   list.classList.add('open');
 }
 function selAnt(iz){
@@ -1176,8 +1176,8 @@ GUZTIRA: '+list.length+' ekitaldi
 
 // MODAL NEW - render req lists
 function renderReqList(){
-  document.getElementById('req-list').innerHTML=CK_B.map(c=>'<div class="req-item" id="req-'+c.id+'" onclick="toggleReq(''+c.id+'','req-')"><input type="checkbox" id="rch-'+c.id+'" style="accent-color:var(--berde);width:14px;height:14px;flex-shrink:0"><span style="flex:1">'+c.eu+'</span><span class="check-tag tag-obl">B — Obl</span></div>').join('');
-  document.getElementById('req-c-list').innerHTML=CK_C.map(c=>'<div class="req-item" id="reqc-'+c.id+'" onclick="toggleReq(''+c.id+'','reqc-')"><input type="checkbox" id="rchc-'+c.id+'" style="accent-color:var(--urdina);width:14px;height:14px;flex-shrink:0"><span style="flex:1">'+c.eu+'</span><span class="check-tag tag-opt">C</span></div>').join('');
+  document.getElementById('req-list').innerHTML=CK_B.map(c=>'<div class="req-item" id="req-'+c.id+'" data-id="'+c.id+'" data-pfx="req-" onclick="toggleReq(this.dataset.id,this.dataset.pfx)"><input type="checkbox" id="rch-'+c.id+'" style="accent-color:var(--berde);width:14px;height:14px;flex-shrink:0"><span style="flex:1">'+c.eu+'</span><span class="check-tag tag-obl">B — Obl</span></div>').join('');
+  document.getElementById('req-c-list').innerHTML=CK_C.map(c=>'<div class="req-item" id="reqc-'+c.id+'" data-id="'+c.id+'" data-pfx="reqc-" onclick="toggleReq(this.dataset.id,this.dataset.pfx)"><input type="checkbox" id="rchc-'+c.id+'" style="accent-color:var(--urdina);width:14px;height:14px;flex-shrink:0"><span style="flex:1">'+c.eu+'</span><span class="check-tag tag-opt">C</span></div>').join('');
 }
 function toggleReq(id,prefix){
   const el=document.getElementById(prefix+id);const ch=document.getElementById((prefix==='req-'?'rch-':'rchc-')+id);
