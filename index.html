@@ -366,7 +366,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
         <div class="meta-item"><div class="key">Bestelakoak</div><div class="val" id="d-best" style="grid-column:1/-1">—</div></div>
       </div>
       <div class="divider" style="margin:10px 0 8px"></div>
-      <div style="font-size:11px;font-weight:600;color:var(--grisa-med);margin-bottom:6px">EGOERA ALDATU:</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:11px;font-weight:600;color:var(--grisa-med)">EGOERA ALDATU:</div>
+        <button class="btn btn-secondary btn-sm" onclick="editatuEkitaldia()" style="font-size:11px;padding:4px 10px">✏️ Editatu eskaria</button>
+      </div>
       <div class="estado-sel" id="d-estado-sel"></div>
     </div>
 
@@ -439,7 +442,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
 <!-- MODAL NUEVO -->
 <div class="modal-overlay" id="modal-new">
 <div class="modal">
-  <div class="modal-header"><div class="modal-title">➕ Ekitaldi berria</div><button class="close-btn" onclick="itxiModal('modal-new')">✕</button></div>
+  <div class="modal-header"><div class="modal-title" id="modal-new-title">➕ Ekitaldi berria</div><button class="close-btn" onclick="itxiModal('modal-new')">✕</button></div>
   <div class="modal-body">
     <div class="form-grid">
       <div class="form-group full">
@@ -518,7 +521,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Dokumentazio aurrea</label>
+        <label class="form-label">Dokumentazio epea</label>
         <select class="form-select" id="f-plazo">
           <option value="21">21 egun</option>
           <option value="15" selected>15 egun</option>
@@ -675,6 +678,7 @@ const ESTADOS=[
 ];
 
 let ekitaldiak=[],antolatzaileak=[],ekEA=null;
+let modoEdicion=false,editId=null;
 let vistaActual='denak',instFiltro=null,filtroActual='denak',bilaketa='';
 let norPendiente=null,norHautatua=null,calDate=new Date();
 
@@ -1064,7 +1068,7 @@ function sortuKomunikazio(){
   if(e.besteak)txt+='Bestelakoak: '+e.besteak+'\n';
   if(e.tasa)txt+='Tasa: '+e.tasa+'\n';
   txt+='-'.repeat(44)+'\n';
-  txt+='Dokumentazio aurrea: '+dEU+'\n';
+  txt+='Dokumentazio epea: '+dEU+'\n';
   txt+='Email: '+ADMIN+'\n';
   txt+='-'.repeat(44)+'\n';
   txt+=pend.length>0?'ZAIN DAGOENA:\n'+pend.map(p=>'  * '+p).join('\n')+'\n':'Dokumentazio guztia jasota\n';
@@ -1137,12 +1141,53 @@ function toggleReq(id,prefix){
   el.classList.toggle('sel');ch.checked=el.classList.contains('sel');
 }
 function abrirModalBerria(){
+  modoEdicion=false;editId=null;
+  document.getElementById('modal-new-title').textContent='+ Ekitaldi berria';
   renderReqList();
   document.getElementById('f-fecha').valueAsDate=new Date();
   ['f-nombre','f-antolatzailea','f-besteak','f-notas-new','f-partic','f-fecha-fin','f-hora-ini','f-hora-fin','f-tasa'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-tipo').value='';document.getElementById('f-inst').value='';
   document.getElementById('f-idioma').value='eu';document.getElementById('f-plazo').value='15';
   document.getElementById('f-ant-oharra').style.display='none';
+  abrirModal('modal-new');
+}
+
+function editatuEkitaldia(){
+  if(!ekEA)return;
+  const e=ekEA;
+  modoEdicion=true;editId=e.id;
+  document.getElementById('modal-new-title').textContent='Editatu: '+e.nombre;
+  renderReqList();
+  // Fill all fields with current event data
+  document.getElementById('f-nombre').value=e.nombre||'';
+  document.getElementById('f-antolatzailea').value=e.antolatzailea||'';
+  document.getElementById('f-tipo').value=e.tipo||'';
+  document.getElementById('f-inst').value=e.instalacion||'';
+  document.getElementById('f-fecha').value=e.fecha||'';
+  document.getElementById('f-fecha-fin').value=e.fechaFin||'';
+  document.getElementById('f-hora-ini').value=e.horaIni||'';
+  document.getElementById('f-hora-fin').value=e.horaFin||'';
+  document.getElementById('f-partic').value=e.participantes||'';
+  document.getElementById('f-tasa').value=e.tasa||'';
+  document.getElementById('f-idioma').value=e.idioma||'eu';
+  document.getElementById('f-plazo').value=e.plazoAntes||15;
+  document.getElementById('f-besteak').value=e.besteak||'';
+  document.getElementById('f-notas-new').value=e.notas||'';
+  document.getElementById('f-ant-oharra').style.display='none';
+  // Mark B checkboxes that are already selected
+  const selB=(e.checklist||[]).map(c=>c.id).filter(id=>CK_B.find(b=>b.id===id));
+  selB.forEach(id=>{
+    const el=document.getElementById('req-'+id);
+    const ch=document.getElementById('rch-'+id);
+    if(el&&ch){el.classList.add('sel');ch.checked=true;}
+  });
+  // Mark C checkboxes
+  const selC=e.checklistC||[];
+  selC.forEach(id=>{
+    const el=document.getElementById('reqc-'+id);
+    const ch=document.getElementById('rchc-'+id);
+    if(el&&ch){el.classList.add('sel');ch.checked=true;}
+  });
   abrirModal('modal-new');
 }
 async function sortuEkitaldia(){
@@ -1155,16 +1200,62 @@ async function sortuEkitaldia(){
     const nA={id:Date.now()-1,izena:antName,oharra:'',creado:new Date().toISOString().split('T')[0]};
     antolatzaileak.push(nA);saveAnt(nA).catch(()=>{});
   }
-  const exp=genExpediente();
-  const checklist=[
-    ...CK_A.map(c=>({id:c.id,hecho:false,nor:null,fechaEntrega:null})),
-    ...CK_B.filter(c=>document.getElementById('req-'+c.id)?.classList.contains('sel')).map(c=>({id:c.id,hecho:false,nor:null,fechaEntrega:null})),
-  ];
-  const checklistC=CK_C.filter(c=>document.getElementById('reqc-'+c.id)?.classList.contains('sel')).map(c=>c.id);
-  const nuevo={id:Date.now(),expediente:exp,nombre,tipo:document.getElementById('f-tipo').value,instalacion,fecha,fechaFin:document.getElementById('f-fecha-fin').value||'',horaIni:document.getElementById('f-hora-ini').value,horaFin:document.getElementById('f-hora-fin').value,antolatzailea:antName,idioma:document.getElementById('f-idioma').value,participantes:document.getElementById('f-partic').value,tasa:document.getElementById('f-tasa').value||'',besteak:document.getElementById('f-besteak').value,estado:'jasoa',plazoAntes:parseInt(document.getElementById('f-plazo').value)||15,checklist,checklistC,notas:document.getElementById('f-notas-new').value,log:[{fecha:new Date().toLocaleDateString('eu-ES'),nor:'—',accion:'Ekitaldia sortu ('+exp+')'}],creado:new Date().toISOString().split('T')[0],motivoUkapen:'',erantzunGordea:''};
-  loading(true);
-  try{await saveEv(nuevo);ekitaldiak.push(nuevo);itxiModal('modal-new');render();setTimeout(()=>abrirDetaila(nuevo.id),100);}
-  catch(e){alert('⚠️ Gordatzeko errorea: '+e.message);}finally{loading(false);}
+  const selB=CK_B.filter(c=>document.getElementById('req-'+c.id)?.classList.contains('sel'));
+  const selC=CK_C.filter(c=>document.getElementById('reqc-'+c.id)?.classList.contains('sel')).map(c=>c.id);
+
+  if(modoEdicion && editId){
+    // UPDATE existing event
+    const e=ekitaldiak.find(ev=>ev.id===editId);
+    if(!e)return;
+    const fecha_edit=new Date().toLocaleDateString('eu-ES');
+    // Update checklist: keep existing done status for A items, add/remove B items
+    const newChecklistA=CK_A.map(c=>{
+      const existing=(e.checklist||[]).find(x=>x.id===c.id);
+      return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};
+    });
+    const newChecklistB=selB.map(c=>{
+      const existing=(e.checklist||[]).find(x=>x.id===c.id);
+      return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};
+    });
+    e.nombre=nombre;
+    e.tipo=document.getElementById('f-tipo').value;
+    e.instalacion=instalacion;
+    e.fecha=fecha;
+    e.fechaFin=document.getElementById('f-fecha-fin').value||'';
+    e.horaIni=document.getElementById('f-hora-ini').value;
+    e.horaFin=document.getElementById('f-hora-fin').value;
+    e.antolatzailea=antName;
+    e.idioma=document.getElementById('f-idioma').value;
+    e.participantes=document.getElementById('f-partic').value;
+    e.tasa=document.getElementById('f-tasa').value||'';
+    e.besteak=document.getElementById('f-besteak').value;
+    e.plazoAntes=parseInt(document.getElementById('f-plazo').value)||15;
+    e.checklist=[...newChecklistA,...newChecklistB];
+    e.checklistC=selC;
+    e.notas=document.getElementById('f-notas-new').value;
+    e.log=e.log||[];
+    e.log.push({fecha:fecha_edit,nor:'--',accion:'Eskaria editatu: '+nombre});
+    loading(true);
+    try{
+      await saveEv(e);
+      itxiModal('modal-new');
+      ekEA=e;
+      renderDetaila();render();
+    }catch(err){alert('Gordatzeko errorea: '+err.message);}
+    finally{loading(false);}
+  } else {
+    // CREATE new event
+    const exp=genExpediente();
+    const checklist=[
+      ...CK_A.map(c=>({id:c.id,hecho:false,nor:null,fechaEntrega:null})),
+      ...selB.map(c=>({id:c.id,hecho:false,nor:null,fechaEntrega:null})),
+    ];
+    const nuevo={id:Date.now(),expediente:exp,nombre,tipo:document.getElementById('f-tipo').value,instalacion,fecha,fechaFin:document.getElementById('f-fecha-fin').value||'',horaIni:document.getElementById('f-hora-ini').value,horaFin:document.getElementById('f-hora-fin').value,antolatzailea:antName,idioma:document.getElementById('f-idioma').value,participantes:document.getElementById('f-partic').value,tasa:document.getElementById('f-tasa').value||'',besteak:document.getElementById('f-besteak').value,estado:'jasoa',plazoAntes:parseInt(document.getElementById('f-plazo').value)||15,checklist,checklistC:selC,notas:document.getElementById('f-notas-new').value,log:[{fecha:new Date().toLocaleDateString('eu-ES'),nor:'--',accion:'Ekitaldia sortu ('+exp+')'}],creado:new Date().toISOString().split('T')[0],motivoUkapen:'',erantzunGordea:''};
+    loading(true);
+    try{await saveEv(nuevo);ekitaldiak.push(nuevo);itxiModal('modal-new');render();setTimeout(()=>abrirDetaila(nuevo.id),100);}
+    catch(err){alert('Gordatzeko errorea: '+err.message);}
+    finally{loading(false);}
+  }
 }
 
 // CALENDAR
