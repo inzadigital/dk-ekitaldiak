@@ -960,127 +960,59 @@ document.addEventListener('click',e=>{if(!e.target.closest('.autocomplete-wrap')
 
 // RESPUESTA
 function buildPendItems(e,lang){
-  const ckA=(e.checklist||[]).filter(c=>!c.hecho).map(c=>{const d=getDefA(c.id)||getDefB(c.id);return d?(lang==='eu'?d.eu:d.es):null;}).filter(Boolean);
-  const ckC=(e.checklistC||[]).map(cid=>{const d=CK_C.find(x=>x.id===cid);return d?(lang==='eu'?d.eu:d.es):null;}).filter(Boolean);
-  return{pend:ckA,extras:ckC};
+  const ckAB=(e.checklist||[]).filter(c=>!c.hecho).map(c=>{
+    const d=getDefA(c.id)||getDefB(c.id);
+    return d?(lang==='eu'?d.eu:d.es):null;
+  }).filter(Boolean);
+  const ckC=(e.checklistC||[]).map(cid=>{
+    const d=CK_C.find(x=>x.id===cid);
+    return d?(lang==='eu'?d.eu:d.es):null;
+  }).filter(Boolean);
+  return{pend:ckAB,extras:ckC};
 }
 
 function sortuErantzuna(lang){
-  const e=ekEA;const{pend,extras}=buildPendItems(e,lang);
+  const e=ekEA;
+  const{pend,extras}=buildPendItems(e,lang);
   const ep=calcEpeak(e);
   const docDate=ep[0]?.fecha;
-  const dStr=docDate?fmtF(docDate.toISOString().split('T')[0],lang):'—';
-  const tasaTxt=e.tasa?('
-  — '+(lang==='eu'?'Zerbitzuaren ordainketa: ':'Pago del servicio: ')+e.tasa):'';
-
+  const dStr=docDate?fmtF(docDate.toISOString().split('T')[0],lang):'--';
+  const tasaTxt=e.tasa?('\n  -- '+(lang==='eu'?'Zerbitzuaren ordainketa: ':'Pago del servicio: ')+e.tasa):'';
   let txt='';
   if(lang==='eu'){
     if(e.estado==='ukatua'){
-      txt='Egun on,
-
-"'+e.nombre+'" ekitaldirako egindako eskaerari dagokionez, ezin dugu eskaera onartu:
-
-Arrazoia: '+(e.motivoUkapen||'—')+'
-
-Hala ere, beste aukera batzuk aztertzeko, jarri gurekin harremanetan.
-
-Agur bat,
-Durango Kirolak';
+      txt='Egun on,\n\n"'+e.nombre+'" ekitaldirako eskaerari dagokionez, ezin dugu onartu:\n\nArrazoia: '+(e.motivoUkapen||'--')+'\n\nBeste aukera batzuk aztertzeko, jarri gurekin harremanetan.\n\nAgur bat,\nDurango Kirolak';
     }else{
-      txt='EKITALDIA: '+e.nombre+'
-'+(e.expediente?'ESPEDIENTE ZBK.: '+e.expediente+'
-':'')
-        +'DATA: '+fmtF(e.fecha,'eu')+(e.fechaFin?' → '+fmtF(e.fechaFin,'eu'):'')+'
-'
-        +'ORDUTEGIA: '+(e.horaIni||'—')+' – '+(e.horaFin||'—')+'
-'
-        +'INSTALAZIOA: '+(e.instalacion||'—')+(e.besteak?'
-BESTEAK: '+e.besteak:'')
-        +'
-
-⚠️ GARRANTZITSUA: Honako permisua BALDINTZATUTA dago. Dokumentazio GUZTIA jaso arte ez da instalazioa bermatuta egongo.
-
-'
-        +'Ekitaldia hasi baino '+(e.plazoAntes||15)+' egun lehenago, bidali mezu elektroniko bat helbide honetara:
-'+ADMIN+'
-
-'
-        +'Dokumentazioa erantsi:
-'
-        +(pend.length?pend.map(p=>'  • '+p).join('
-'):'  ✅ Dokumentazio guztia jasota')
-        +tasaTxt
-        +(extras.length?'
-
-Horrez gain:
-'+extras.map(p=>'  • '+p).join('
-'):'')
-        +'
-
-Betebeharrak:
-'+D_ITEMS_EU.map(d=>'  • '+d).join('
-')
-        +'
-
-'+ZEH_EU
-        +'
-
-Adeitasunez,
-Durango Kirolak';
+      txt='EKITALDIA: '+e.nombre+'\n';
+      if(e.expediente)txt+='ESPEDIENTE ZBK.: '+e.expediente+'\n';
+      txt+='DATA: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+' | ORDUTEGIA: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='INSTALAZIOA: '+(e.instalacion||'--')+(e.besteak?'\nBESTEAK: '+e.besteak:'')+'\n';
+      txt+='\n!!! GARRANTZITSUA: Permisu hau BALDINTZATUTA dago. Dokumentazio GUZTIA jaso arte ez da instalazioa bermatuta egongo.\n\n';
+      txt+='Ekitaldia hasi baino '+(e.plazoAntes||15)+' egun lehenago, bidali mezu helbide honetara:\n'+ADMIN+'\n\n';
+      txt+='Dokumentazioa erantsi:\n';
+      txt+=pend.length?pend.map(p=>'  * '+p).join('\n'):'  (Dokumentazio guztia jasota)';
+      txt+=tasaTxt;
+      if(extras.length)txt+='\n\nHorrez gain:\n'+extras.map(p=>'  * '+p).join('\n');
+      txt+='\n\nBetebeharrak:\n'+D_ITEMS_EU.map(d=>'  * '+d).join('\n');
+      txt+='\n\n'+ZEH_EU;
+      txt+='\n\nAdeitasunez,\nDurango Kirolak';
     }
   }else{
     if(e.estado==='ukatua'){
-      txt='Buenos días,
-
-En relación con la solicitud para el evento "'+e.nombre+'", lamentamos comunicarles que no podemos atender la petición:
-
-Motivo: '+(e.motivoUkapen||'—')+'
-
-Pueden ponerse en contacto con nosotros para explorar otras alternativas.
-
-Reciban un cordial saludo,
-Durango Kirolak';
+      txt='Buenos dias,\n\nEn relacion con la solicitud para "'+e.nombre+'", lamentamos comunicarles que no podemos atender la peticion:\n\nMotivo: '+(e.motivoUkapen||'--')+'\n\nPueden contactarnos para explorar otras alternativas.\n\nReciban un cordial saludo,\nDurango Kirolak';
     }else{
-      txt='EVENTO: '+e.nombre+'
-'+(e.expediente?'Nº EXPEDIENTE: '+e.expediente+'
-':'')
-        +'FECHA: '+fmtF(e.fecha,'es')+(e.fechaFin?' → '+fmtF(e.fechaFin,'es'):'')+'
-'
-        +'HORARIO: '+(e.horaIni||'—')+' – '+(e.horaFin||'—')+'
-'
-        +'INSTALACIÓN: '+(e.instalacion||'—')+(e.besteak?'
-OTROS: '+e.besteak:'')
-        +'
-
-⚠️ IMPORTANTE: Este permiso está CONDICIONADO. La instalación no quedará reservada hasta recibir TODA la documentación.
-
-'
-        +dStr+' baino lehenago / antes del '+dStr+', enviar correo a:
-'+ADMIN+'
-
-'
-        +'Adjuntar:
-'
-        +(pend.length?pend.map(p=>'  • '+p).join('
-'):'  ✅ Toda la documentación recibida')
-        +tasaTxt
-        +(extras.length?'
-
-Además:
-'+extras.map(p=>'  • '+p).join('
-'):'')
-        +'
-
-Obligaciones:
-'+D_ITEMS_ES.map(d=>'  • '+d).join('
-')
-        +'
-
-'+ZEH_ES
-        +'
-
-Reciban un cordial saludo,
-Durango Kirolak';
+      txt='EVENTO: '+e.nombre+'\n';
+      if(e.expediente)txt+='N. EXPEDIENTE: '+e.expediente+'\n';
+      txt+='FECHA: '+fmtF(e.fecha,'es')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'es'):'')+' | HORARIO: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='INSTALACION: '+(e.instalacion||'--')+(e.besteak?'\nOTROS: '+e.besteak:'')+'\n';
+      txt+='\n!!! IMPORTANTE: Este permiso esta CONDICIONADO. La instalacion no quedara reservada hasta recibir TODA la documentacion.\n\n';
+      txt+='Antes del '+dStr+', enviar correo a:\n'+ADMIN+'\n\nAdjuntar:\n';
+      txt+=pend.length?pend.map(p=>'  * '+p).join('\n'):'  (Toda la documentacion recibida)';
+      txt+=tasaTxt;
+      if(extras.length)txt+='\n\nAdemas:\n'+extras.map(p=>'  * '+p).join('\n');
+      txt+='\n\nObligaciones:\n'+D_ITEMS_ES.map(d=>'  * '+d).join('\n');
+      txt+='\n\n'+ZEH_ES;
+      txt+='\n\nReciban un cordial saludo,\nDurango Kirolak';
     }
   }
   const el=document.getElementById('erantzun-text');
@@ -1090,34 +1022,63 @@ Durango Kirolak';
 }
 
 function sortuKontsulta(){
-  const e=ekEA;const sep='─'.repeat(44);
-  const txt=['🏟️ ERABILGARRITASUN KONTSULTA',sep,'📋 '+e.nombre,'📍 '+(e.instalacion||'—'),'📅 '+fmtF(e.fecha,'eu')+(e.fechaFin?' → '+fmtF(e.fechaFin,'eu'):''),'⏰ '+(e.horaIni||'—')+' – '+(e.horaFin||'—'),'👤 '+(e.antolatzailea||'—'),e.participantes?'👥 '+e.participantes:'',e.besteak?'📦 '+e.besteak:'',sep,'❓ Mesedez, egiaztatu:','  • Instalazioa libre dago data eta ordutegi horretan?','  • Beste erabilerarekin bateragarria da?','  • Material eta zerbitzu eskakizunak bideragarriak dira?','  • Arazo edo mugaren bat bada, jakinarazi.',sep,'Eskerrik asko — DK Ekitaldiak'].filter(l=>l!=='').join('
-');
+  const e=ekEA;
+  let txt='ERABILGARRITASUN KONTSULTA\n';
+  txt+='='.repeat(44)+'\n';
+  txt+='Ekitaldia: '+e.nombre+'\n';
+  txt+='Instalazioa: '+(e.instalacion||'--')+'\n';
+  txt+='Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+'\n';
+  txt+='Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+  txt+='Antolatzailea: '+(e.antolatzailea||'--')+'\n';
+  if(e.participantes)txt+='Parte-hartzaileak: '+e.participantes+'\n';
+  if(e.besteak)txt+='Bestelakoak: '+e.besteak+'\n';
+  txt+='-'.repeat(44)+'\n';
+  txt+='Mesedez, egiaztatu / Por favor, confirmar:\n';
+  txt+='  * Instalazioa libre dago data eta ordutegi horretan? / Instalacion libre?\n';
+  txt+='  * Beste erabilerarekin bateragarria? / Compatible con otros usos?\n';
+  txt+='  * Material eta zerbitzu eskakizunak bideragarriak? / Materiales viables?\n';
+  txt+='  * Arazo edo mugaren bat bada, jakinarazi. / Si hay limitaciones, comunicarlo.\n';
+  txt+='-'.repeat(44)+'\n';
+  txt+='Eskerrik asko -- DK Ekitaldiak';
   document.getElementById('komunikazio-text').value=txt;
   document.getElementById('komunikazio-box').style.display='block';
   document.getElementById('komunikazio-box').scrollIntoView({behavior:'smooth'});
 }
 
 function sortuKomunikazio(){
-  const e=ekEA;const si=estadoInfo(e.estado);
-  const ep=calcEpeak(e);const dEU=ep[0]?fmtF(ep[0].fecha.toISOString().split('T')[0],'eu'):'—';
+  const e=ekEA;
+  const si=estadoInfo(e.estado);
+  const ep=calcEpeak(e);
+  const dEU=ep[0]?fmtF(ep[0].fecha.toISOString().split('T')[0],'eu'):'--';
   const pend=pendAll(e).map(c=>{const d=getDefA(c.id)||getDefB(c.id);return d?(e.idioma==='eu'?d.eu:d.es):c.id;});
-  const emj={baimenduta:'✅',ukatua:'❌',tramitatzen:'🔄',jasoa:'📥'}[e.estado]||'📋';
-  const sep='─'.repeat(44);const sep2='═'.repeat(44);
-  const txt=[sep2,emj+' '+si.label.toUpperCase()+' — '+e.nombre,(e.expediente?'📎 '+e.expediente:''),'📍 '+(e.instalacion||'—'),'📅 '+fmtF(e.fecha,'eu')+(e.fechaFin?' → '+fmtF(e.fechaFin,'eu'):''),'⏰ '+(e.horaIni||'—')+' – '+(e.horaFin||'—'),'👤 '+(e.antolatzailea||'—'),e.participantes?'👥 '+e.participantes:'',e.besteak?'📦 '+e.besteak:'',e.tasa?'💶 '+e.tasa:'',sep,'📄 Dokumentazio aurrea: '+dEU,'📧 '+ADMIN,sep,pend.length>0?'⚠️ Zain dagoena:
-'+pend.map(p=>'  • '+p).join('
-'):'✅ Dokumentazio guztia jasota',e.motivoUkapen&&e.estado==='ukatua'?sep+'
-❌ Ukapen arrazoia: '+e.motivoUkapen:'',e.notas?sep+'
-📝 Oharrak: '+e.notas:'',sep,'🔗 Erreferentzia ofiziala: DK Ekitaldiak',sep2,'Durango Kirolak'].filter(l=>l!=='').join('
-');
+  const emj={baimenduta:'[OK]',ukatua:'[UKATUA]',tramitatzen:'[TRAMITATZEN]',jasoa:'[JASOA]'}[e.estado]||'[?]';
+  let txt='EKITALDI JAKINARAZPENA\n';
+  txt+='='.repeat(44)+'\n';
+  txt+=emj+' '+si.label.toUpperCase()+' -- '+e.nombre+'\n';
+  if(e.expediente)txt+='Espedientea: '+e.expediente+'\n';
+  txt+='Instalazioa: '+(e.instalacion||'--')+'\n';
+  txt+='Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+'\n';
+  txt+='Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+  txt+='Antolatzailea: '+(e.antolatzailea||'--')+'\n';
+  if(e.participantes)txt+='Parte-hartzaileak: '+e.participantes+'\n';
+  if(e.besteak)txt+='Bestelakoak: '+e.besteak+'\n';
+  if(e.tasa)txt+='Tasa: '+e.tasa+'\n';
+  txt+='-'.repeat(44)+'\n';
+  txt+='Dokumentazio aurrea: '+dEU+'\n';
+  txt+='Email: '+ADMIN+'\n';
+  txt+='-'.repeat(44)+'\n';
+  txt+=pend.length>0?'ZAIN DAGOENA:\n'+pend.map(p=>'  * '+p).join('\n')+'\n':'Dokumentazio guztia jasota\n';
+  if(e.motivoUkapen&&e.estado==='ukatua')txt+='Ukapen arrazoia: '+e.motivoUkapen+'\n';
+  if(e.notas)txt+='Oharrak: '+e.notas+'\n';
+  txt+='-'.repeat(44)+'\n';
+  txt+='Erreferentzia ofiziala: DK Ekitaldiak\n';
+  txt+='='.repeat(44)+'\n';
+  txt+='Durango Kirolak';
   document.getElementById('komunikazio-text').value=txt;
   document.getElementById('komunikazio-box').style.display='block';
   document.getElementById('komunikazio-box').scrollIntoView({behavior:'smooth'});
 }
 
-function kopiatu(id,btn){
-  navigator.clipboard.writeText(document.getElementById(id).value).then(()=>{const o=btn.textContent;btn.textContent='✓ Kopiatuta!';setTimeout(()=>btn.textContent=o,2000);});
-}
 
 // TXOSTENAK
 function sortuTxostena(){
@@ -1131,48 +1092,40 @@ function sortuTxostena(){
   if(estado)list=list.filter(e=>e.estado===estado);
   if(inst)list=list.filter(e=>(e.instalacion||'').includes(inst));
   list.sort((a,b)=>a.fecha<b.fecha?-1:1);
-  if(!list.length){document.getElementById('txosten-result').style.display='block';document.getElementById('txosten-text').value='Ez dago ekitaldirik hautatutako irizpideekin.';document.getElementById('txosten-label').textContent='0 ekitaldi';return;}
-  const sep='═'.repeat(50);const sep2='─'.repeat(50);
-  const header='DURANGO KIROLAK — DK EKITALDIAK
-EKITALDIEN TXOSTENA / INFORME DE EVENTOS
-'+(from||'—')+' → '+(to||'—')+'
-'+(estado?estadoInfo(estado).label+' · ':'')+( inst||'Instalazio guztiak')+'
-Sortze data: '+new Date().toLocaleDateString('eu-ES')+'
-'+sep;
-  const rows=list.map((e,i)=>{
-    const si=estadoInfo(e.estado);const pend=pendAll(e).length;
-    return(i+1)+'. '+e.nombre+'
-'
-      +(e.expediente?'   📎 '+e.expediente+'
-':'')
-      +'   📅 '+fmtF(e.fecha,'eu')+(e.fechaFin?' → '+fmtF(e.fechaFin,'eu'):'')+'
-'
-      +'   ⏰ '+(e.horaIni||'—')+' – '+(e.horaFin||'—')+'
-'
-      +'   📍 '+(e.instalacion||'—')+'
-'
-      +'   👤 '+(e.antolatzailea||'—')+'
-'
-      +'   🔖 Egoera: '+si.label+(pend>0?' | ⚠️ '+pend+' dok. zain':' | ✅ Dokumentazio osoa')+'
-'
-      +(e.tasa?'   💶 Tasa: '+e.tasa+'
-':'')
-      +(e.notas?'   📝 '+e.notas+'
-':'')
-      +(e.motivoUkapen?'   ❌ Ukapen arrazoia: '+e.motivoUkapen+'
-':'')
-      +sep2;
-  }).join('
-');
-  const footer='
-GUZTIRA: '+list.length+' ekitaldi
-'+sep;
-  document.getElementById('txosten-text').value=header+'
-
-'+rows+footer;
+  if(!list.length){
+    document.getElementById('txosten-result').style.display='block';
+    document.getElementById('txosten-text').value='Ez dago ekitaldirik hautatutako irizpideekin.';
+    document.getElementById('txosten-label').textContent='0 ekitaldi';
+    return;
+  }
+  const sep='='.repeat(50);
+  const sep2='-'.repeat(50);
+  let txt='DURANGO KIROLAK -- DK EKITALDIAK\n';
+  txt+='EKITALDIEN TXOSTENA / INFORME DE EVENTOS\n';
+  txt+=(from||'--')+' -> '+(to||'--')+'\n';
+  txt+=(estado?estadoInfo(estado).label+' | ':'')+( inst||'Instalazio guztiak')+'\n';
+  txt+='Sortze data: '+new Date().toLocaleDateString('eu-ES')+'\n';
+  txt+=sep+'\n\n';
+  list.forEach((e,idx)=>{
+    const si=estadoInfo(e.estado);
+    const pend=pendAll(e).length;
+    txt+=(idx+1)+'. '+e.nombre+'\n';
+    if(e.expediente)txt+='   ['+e.expediente+']\n';
+    txt+='   Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+' | Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+    txt+='   Instalazioa: '+(e.instalacion||'--')+'\n';
+    txt+='   Antolatzailea: '+(e.antolatzailea||'--')+'\n';
+    txt+='   Egoera: '+si.label+(pend>0?' | ZAIN: '+pend+' dok.':' | Dokumentazio osoa')+'\n';
+    if(e.tasa)txt+='   Tasa: '+e.tasa+'\n';
+    if(e.notas)txt+='   Oharrak: '+e.notas+'\n';
+    if(e.motivoUkapen)txt+='   Ukapen arrazoia: '+e.motivoUkapen+'\n';
+    txt+=sep2+'\n';
+  });
+  txt+='\nGUZTIRA: '+list.length+' ekitaldi\n'+sep;
+  document.getElementById('txosten-text').value=txt;
   document.getElementById('txosten-label').textContent=list.length+' ekitaldi aurkitu';
   document.getElementById('txosten-result').style.display='block';
 }
+
 
 // MODAL NEW - render req lists
 function renderReqList(){
