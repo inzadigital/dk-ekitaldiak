@@ -131,8 +131,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
 .tag-opt{color:var(--grisa-med);background:var(--grisa-arg)}
 .check-nor{font-size:10px;color:var(--grisa-med);white-space:nowrap;margin-left:auto;padding-right:4px}
 
-.prog-bar{height:6px;background:var(--grisa-arg);border-radius:3px;overflow:hidden;margin:8px 0 4px}
-.prog-fill{height:100%;background:var(--berde);border-radius:3px;transition:width .3s}
+.prog-bar{height:8px;background:var(--grisa-arg);border-radius:4px;overflow:hidden;margin:8px 0 4px;display:flex}
+.prog-fill-a{height:100%;background:var(--berde);border-radius:4px 0 0 4px;transition:width .3s}
+.prog-fill-b{height:100%;background:var(--urdina);transition:width .3s}
 .prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--grisa-med)}
 
 .respuesta-textarea{width:100%;min-height:260px;padding:12px;border:1px solid var(--muga);border-radius:6px;font-size:13px;font-family:'DM Sans',sans-serif;line-height:1.7;resize:vertical;outline:none;background:#f9fef4}
@@ -376,7 +377,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
     <div class="detail-cols">
       <div class="section-card">
         <div class="section-title">📄 Dokumentazioa</div>
-        <div class="prog-bar"><div class="prog-fill" id="d-prog" style="width:0%"></div></div>
+        <div class="prog-bar"><div class="prog-fill-a" id="d-prog-a" style="width:0%"></div><div class="prog-fill-b" id="d-prog-b" style="width:0%"></div></div>
         <div class="prog-label"><span id="d-prog-l">0/0</span><span id="d-prog-r">0%</span></div>
         <div style="margin-top:10px" id="d-checklist"></div>
       </div>
@@ -387,7 +388,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
         </div>
         <div class="section-card">
           <div class="section-title">📝 Oharrak</div>
-          <textarea class="form-textarea" id="d-notas" rows="3" placeholder="Ohar internas…" onchange="gordaOharrak()"></textarea>
+          <textarea class="form-textarea" id="d-notas" rows="3" placeholder="Ohar internas…" oninput="notasAldatu()"></textarea>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <button class="btn btn-secondary btn-sm" id="btn-gorde-notas" onclick="gordaOharrak(this)" style="display:none">💾 Gorde oharrak</button>
+            <span id="notas-saved-msg" style="font-size:11px;color:var(--berde-osc);display:none">✅ Gordeta</span>
+          </div>
         </div>
         <div class="section-card">
           <div class="section-title">🕒 Erregistroa</div>
@@ -824,6 +829,10 @@ function renderDetaila(){
   document.getElementById('d-tasa').textContent=e.tasa||'—';
   document.getElementById('d-best').textContent=e.besteak||'—';
   document.getElementById('d-notas').value=e.notas||'';
+  const btnN=document.getElementById('btn-gorde-notas');
+  if(btnN){btnN.style.display='none';}
+  const msgN=document.getElementById('notas-saved-msg');
+  if(msgN){msgN.style.display='none';}
   // Oharra
   const ant=antolatzaileak.find(a=>a.izena===e.antolatzailea);
   const ob=document.getElementById('d-oharra-box');
@@ -840,10 +849,23 @@ function renderDetaila(){
 
 function renderChecklist(){
   const e=ekEA;const list=e.checklist||[];
+  const itemsA=list.filter(c=>getDefA(c.id));
+  const itemsB=list.filter(c=>getDefB(c.id));
+  const doneA=itemsA.filter(c=>c.hecho).length;
+  const doneB=itemsB.filter(c=>c.hecho).length;
   const obl=list.length;const done=list.filter(c=>c.hecho).length;
   const pct=obl>0?Math.round(done/obl*100):100;
-  document.getElementById('d-prog').style.width=pct+'%';
-  document.getElementById('d-prog-l').textContent=done+'/'+obl;
+  const pctA=list.length>0?Math.round(doneA/list.length*100):0;
+  const pctB=list.length>0?Math.round(doneB/list.length*100):0;
+  document.getElementById('d-prog-a').style.width=pctA+'%';
+  document.getElementById('d-prog-b').style.width=pctB+'%';
+  // Differentiated label: show A and B separately
+  let labelL=done+'/'+obl;
+  if(itemsB.length>0){
+    labelL=doneA+'/'+itemsA.length+' (A)';
+    if(itemsB.length)labelL+=' · '+doneB+'/'+itemsB.length+' (B)';
+  }
+  document.getElementById('d-prog-l').textContent=labelL;
   document.getElementById('d-prog-r').textContent=pct+'%';
   const lang=e.idioma||'eu';
   let html=list.map((c,i)=>{
@@ -949,7 +971,21 @@ function aldatuEgoera(estado){
   norModal('Nor egiten du egoera aldaketa?','egoera',{estado});
 }
 function toggleCheck(idx){const c=ekEA.checklist[idx];norModal('Nor '+(c.hecho?'desmarkatu':'markatu')+' du?','check',{idx,val:!c.hecho});}
-function gordaOharrak(){if(!ekEA)return;ekEA.notas=document.getElementById('d-notas').value;saveEv(ekEA).catch(()=>{});}
+function notasAldatu(){
+  const btn=document.getElementById('btn-gorde-notas');
+  const msg=document.getElementById('notas-saved-msg');
+  if(btn){btn.style.display='inline-flex';msg.style.display='none';}
+}
+async function gordaOharrak(btn){
+  if(!ekEA)return;
+  ekEA.notas=document.getElementById('d-notas').value;
+  try{
+    await saveEv(ekEA);
+    if(btn){btn.style.display='none';}
+    const msg=document.getElementById('notas-saved-msg');
+    if(msg){msg.style.display='inline';setTimeout(()=>msg.style.display='none',2500);}
+  }catch(e){alert('⚠️ Gordatzeko errorea.');}
+}
 async function ezabatuEkitaldia(){
   if(!ekEA||!confirm('"'+ekEA.nombre+'" ezabatu nahi duzu?'))return;
   const id=ekEA.id;loading(true);
