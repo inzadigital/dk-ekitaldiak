@@ -400,7 +400,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
       <div class="section-card">
         <div class="section-title">📢 Barne komunikazioa</div>
         <div style="display:flex;gap:8px;margin-bottom:10px">
-          <button class="btn btn-secondary btn-sm" onclick="sortuKontsulta()">🔍 Erabilgarritasun kontsulta</button>
+          <button class="btn btn-secondary btn-sm" id="btn-kontsulta" onclick="sortuKontsulta()">🔍 Erabilgarritasun kontsulta</button>
           <button class="btn btn-secondary btn-sm" onclick="sortuKomunikazio()">📢 Jakinarazpena (barne)</button>
         </div>
         <div id="komunikazio-box" style="display:none">
@@ -424,7 +424,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
           <textarea class="respuesta-textarea" id="erantzun-text" rows="20"></textarea>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button class="btn btn-primary btn-sm" onclick="kopiatu('erantzun-text',this)">📋 Kopiatu</button>
-            <button class="btn btn-secondary btn-sm" onclick="gordaErantzuna()">💾 Gorde aldaketak</button>
+            <button class="btn btn-secondary btn-sm" onclick="gordaErantzuna(this)">💾 Gorde aldaketak</button>
             <button class="btn btn-secondary btn-sm" onclick="document.getElementById('erantzun-box').style.display='none'">✕</button>
           </div>
         </div>
@@ -745,10 +745,14 @@ function renderAdi(){
 function filteredList(){
   let list=[...ekitaldiak];
   if(vistaActual==='historia')list=list.filter(e=>!isFutur(e)||e.estado==='ukatua');
-  else if(vistaActual==='adi')list=list.filter(e=>{const d=egunakFalta(e.fecha);return isActivo(e)&&((d!==null&&d<=7)||pendAll(e).length>0);});
+  else if(vistaActual==='adi')list=list.filter(e=>{const d=egunakFalta(e.fecha);return isActivo(e)&&((d!==null&&d<=7)||(pendAll(e).length>0&&d!==null&&d<=30));});
   else if(vistaActual==='tramitatzen')list=list.filter(e=>e.estado==='tramitatzen');
   else if(vistaActual==='baimenduta')list=list.filter(e=>e.estado==='baimenduta');
-  else if(vistaActual==='instalacion')list=list.filter(e=>(e.instalacion||'').includes(instFiltro)&&isActivo(e)&&isFutur(e));
+  else if(vistaActual==='instalacion')list=list.filter(e=>{
+    const inst=e.instalacion||'';
+    // Exact prefix match to avoid "Landako I" matching "Landako II"
+    return (inst===instFiltro||inst.startsWith(instFiltro+' ')||inst.startsWith(instFiltro+'\n'))&&isActivo(e)&&isFutur(e);
+  });
   else list=list.filter(e=>isActivo(e)&&isFutur(e));
   if(filtroActual!=='denak')list=list.filter(e=>e.estado===filtroActual);
   if(bilaketa){const q=bilaketa.toLowerCase();list=list.filter(e=>(e.nombre||'').toLowerCase().includes(q)||(e.antolatzailea||'').toLowerCase().includes(q)||(e.instalacion||'').toLowerCase().includes(q));}
@@ -829,6 +833,9 @@ function renderDetaila(){
   renderChecklist();renderTimeline();renderLog();
   document.getElementById('erantzun-box').style.display='none';
   document.getElementById('komunikazio-box').style.display='none';
+  // Hide kontsulta for baimenduta/ukatua
+  const btnK=document.getElementById('btn-kontsulta');
+  if(btnK)btnK.style.display=(e.estado==='baimenduta'||e.estado==='ukatua')?'none':'inline-flex';
 }
 
 function renderChecklist(){
@@ -899,20 +906,48 @@ async function norConfirmatu(){
     const prev=ekEA.estado;ekEA.estado=payload.estado;
     ekEA.log=ekEA.log||[];
     ekEA.log.push({fecha,nor,accion:'Egoera: '+estadoInfo(prev).label+' → '+estadoInfo(payload.estado).label+(ekEA.motivoUkapen&&payload.estado==='ukatua'?' ('+ekEA.motivoUkapen+')':'')});
+    itxiModal('modal-nor');loading(true);
+    try{await saveEv(ekEA);}catch(e){alert('⚠️ Gordatzeko errorea.');}
+    finally{loading(false);}
+    renderDetaila();renderStats();renderSidebar();renderAdi();
+  }else if(tipo==='edicio'){
+    const{nombre,instalacion,fecha:fdata,antName,selB,selC,editId:eid}=payload;
+    const e=ekitaldiak.find(ev=>ev.id===eid);if(!e){itxiModal('modal-nor');return;}
+    const newChecklistA=CK_A.map(c=>{const existing=(e.checklist||[]).find(x=>x.id===c.id);return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};});
+    const newChecklistB=selB.map(c=>{const existing=(e.checklist||[]).find(x=>x.id===c.id);return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};});
+    e.nombre=nombre;e.tipo=document.getElementById('f-tipo').value;e.instalacion=instalacion;e.fecha=fdata;
+    e.fechaFin=document.getElementById('f-fecha-fin').value||'';e.horaIni=document.getElementById('f-hora-ini').value;e.horaFin=document.getElementById('f-hora-fin').value;
+    e.antolatzailea=antName;e.idioma=document.getElementById('f-idioma').value;e.participantes=document.getElementById('f-partic').value;
+    e.tasa=document.getElementById('f-tasa').value||'';e.besteak=document.getElementById('f-besteak').value;
+    e.plazoAntes=parseInt(document.getElementById('f-plazo').value)||15;e.checklist=[...newChecklistA,...newChecklistB];e.checklistC=selC;
+    e.notas=document.getElementById('f-notas-new').value;e.log=e.log||[];
+    e.log.push({fecha,nor,accion:'Eskaria editatu: '+nombre});
+    itxiModal('modal-nor');itxiModal('modal-new');loading(true);
+    try{await saveEv(e);ekEA=e;renderDetaila();render();}
+    catch(err){alert('Gordatzeko errorea: '+err.message);}finally{loading(false);}
   }else if(tipo==='check'){
     const c=ekEA.checklist[payload.idx];
     c.hecho=payload.val;c.nor=nor;c.fechaEntrega=payload.val?new Date().toLocaleDateString('eu-ES'):null;
     const def=getDefA(c.id)||getDefB(c.id);
     ekEA.log=ekEA.log||[];
     ekEA.log.push({fecha,nor,accion:'Dok '+(payload.val?'✓':'✗')+': '+(def?(ekEA.idioma==='eu'?def.eu:def.es):c.id).substring(0,50)});
+    itxiModal('modal-nor');loading(true);
+    try{await saveEv(ekEA);}catch(e){alert('⚠️ Gordatzeko errorea.');}
+    finally{loading(false);}
+    renderDetaila();renderStats();renderSidebar();renderAdi();
   }
-  itxiModal('modal-nor');loading(true);
-  try{await saveEv(ekEA);}catch(e){alert('⚠️ Gordatzeko errorea.');}
-  finally{loading(false);}
-  renderDetaila();renderStats();renderSidebar();renderAdi();
 }
 
-function aldatuEgoera(estado){norModal('Nor egiten du egoera aldaketa?','egoera',{estado});}
+function aldatuEgoera(estado){
+  if(estado==='baimenduta'){
+    const pend=pendAll(ekEA);
+    if(pend.length>0){
+      const conf=confirm('⚠️ '+pend.length+' dokumentu zain daude oraindik.\n\nDokumentazio OSOA jaso gabe baimentzen ari zara.\n\nSeguruenik baimendu nahi duzu?');
+      if(!conf)return;
+    }
+  }
+  norModal('Nor egiten du egoera aldaketa?','egoera',{estado});
+}
 function toggleCheck(idx){const c=ekEA.checklist[idx];norModal('Nor '+(c.hecho?'desmarkatu':'markatu')+' du?','check',{idx,val:!c.hecho});}
 function gordaOharrak(){if(!ekEA)return;ekEA.notas=document.getElementById('d-notas').value;saveEv(ekEA).catch(()=>{});}
 async function ezabatuEkitaldia(){
@@ -921,10 +956,10 @@ async function ezabatuEkitaldia(){
   try{await delEv(id);ekitaldiak=ekitaldiak.filter(e=>e.id!==id);itxiDetaila();render();}
   catch(e){alert('⚠️ Ezabatzeko errorea.');}finally{loading(false);}
 }
-function gordaErantzuna(){
+function gordaErantzuna(btn){
   if(!ekEA)return;ekEA.erantzunGordea=document.getElementById('erantzun-text').value;
   saveEv(ekEA).catch(()=>{});
-  const btn=event.target;btn.textContent='✅ Gordeta!';setTimeout(()=>btn.textContent='💾 Gorde aldaketak',2000);
+  btn.textContent='✅ Gordeta!';setTimeout(()=>btn.textContent='💾 Gorde aldaketak',2000);
 }
 
 // OHARRA
@@ -986,6 +1021,11 @@ function sortuErantzuna(lang){
   if(lang==='eu'){
     if(e.estado==='ukatua'){
       txt='Egun on,\n\n"'+e.nombre+'" ekitaldirako eskaerari dagokionez, ezin dugu onartu:\n\nArrazoia: '+(e.motivoUkapen||'--')+'\n\nBeste aukera batzuk aztertzeko, jarri gurekin harremanetan.\n\nAgur bat,\nDurango Kirolak';
+    }else if(e.estado==='jasoa'){
+      txt='Egun on,\n\n"'+e.nombre+'" ekitaldirako zure eskakizuna jaso dugu.\n\n';
+      if(e.expediente)txt+='Erreferentzia zenbakia: '+e.expediente+'\n\n';
+      txt+='Eskakizuna aztertzen ari gara eta laster jakinaraziko dizugu. Bitartean, instalazioaren erabilgarritasuna berresten ari gara.\n\n';
+      txt+='Edozein galderetarako, jarri gurekin harremanetan:\n'+ADMIN+'\n\nAgur bat,\nDurango Kirolak';
     }else{
       txt='EKITALDIA: '+e.nombre+'\n';
       if(e.expediente)txt+='ESPEDIENTE ZBK.: '+e.expediente+'\n';
@@ -1003,7 +1043,12 @@ function sortuErantzuna(lang){
     }
   }else{
     if(e.estado==='ukatua'){
-      txt='Buenos dias,\n\nEn relacion con la solicitud para "'+e.nombre+'", lamentamos comunicarles que no podemos atender la peticion:\n\nMotivo: '+(e.motivoUkapen||'--')+'\n\nPueden contactarnos para explorar otras alternativas.\n\nReciban un cordial saludo,\nDurango Kirolak';
+      txt='Buenos días,\n\nEn relación con la solicitud para "'+e.nombre+'", lamentamos comunicarles que no podemos atender la petición:\n\nMotivo: '+(e.motivoUkapen||'--')+'\n\nPueden contactarnos para explorar otras alternativas.\n\nReciban un cordial saludo,\nDurango Kirolak';
+    }else if(e.estado==='jasoa'){
+      txt='Buenos días,\n\nHemos recibido su solicitud para el evento "'+e.nombre+'".\n\n';
+      if(e.expediente)txt+='Número de referencia: '+e.expediente+'\n\n';
+      txt+='Estamos analizando la solicitud y le informaremos en breve. Mientras tanto, estamos confirmando la disponibilidad de la instalación.\n\n';
+      txt+='Para cualquier consulta, puede contactarnos en:\n'+ADMIN+'\n\nReciban un cordial saludo,\nDurango Kirolak';
     }else{
       txt='EVENTO: '+e.nombre+'\n';
       if(e.expediente)txt+='N. EXPEDIENTE: '+e.expediente+'\n';
@@ -1020,7 +1065,8 @@ function sortuErantzuna(lang){
     }
   }
   const el=document.getElementById('erantzun-text');
-  el.value=ekEA.erantzunGordea||txt;
+  const yaAbierto=document.getElementById('erantzun-box').style.display==='block';
+  el.value=(ekEA.erantzunGordea&&!yaAbierto)?ekEA.erantzunGordea:txt;
   document.getElementById('erantzun-box').style.display='block';
   document.getElementById('erantzun-box').scrollIntoView({behavior:'smooth'});
 }
@@ -1144,7 +1190,7 @@ function abrirModalBerria(){
   modoEdicion=false;editId=null;
   document.getElementById('modal-new-title').textContent='+ Ekitaldi berria';
   renderReqList();
-  document.getElementById('f-fecha').valueAsDate=new Date();
+  document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
   ['f-nombre','f-antolatzailea','f-besteak','f-notas-new','f-partic','f-fecha-fin','f-hora-ini','f-hora-fin','f-tasa'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-tipo').value='';document.getElementById('f-inst').value='';
   document.getElementById('f-idioma').value='eu';document.getElementById('f-plazo').value='15';
@@ -1204,45 +1250,7 @@ async function sortuEkitaldia(){
   const selC=CK_C.filter(c=>document.getElementById('reqc-'+c.id)?.classList.contains('sel')).map(c=>c.id);
 
   if(modoEdicion && editId){
-    // UPDATE existing event
-    const e=ekitaldiak.find(ev=>ev.id===editId);
-    if(!e)return;
-    const fecha_edit=new Date().toLocaleDateString('eu-ES');
-    // Update checklist: keep existing done status for A items, add/remove B items
-    const newChecklistA=CK_A.map(c=>{
-      const existing=(e.checklist||[]).find(x=>x.id===c.id);
-      return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};
-    });
-    const newChecklistB=selB.map(c=>{
-      const existing=(e.checklist||[]).find(x=>x.id===c.id);
-      return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};
-    });
-    e.nombre=nombre;
-    e.tipo=document.getElementById('f-tipo').value;
-    e.instalacion=instalacion;
-    e.fecha=fecha;
-    e.fechaFin=document.getElementById('f-fecha-fin').value||'';
-    e.horaIni=document.getElementById('f-hora-ini').value;
-    e.horaFin=document.getElementById('f-hora-fin').value;
-    e.antolatzailea=antName;
-    e.idioma=document.getElementById('f-idioma').value;
-    e.participantes=document.getElementById('f-partic').value;
-    e.tasa=document.getElementById('f-tasa').value||'';
-    e.besteak=document.getElementById('f-besteak').value;
-    e.plazoAntes=parseInt(document.getElementById('f-plazo').value)||15;
-    e.checklist=[...newChecklistA,...newChecklistB];
-    e.checklistC=selC;
-    e.notas=document.getElementById('f-notas-new').value;
-    e.log=e.log||[];
-    e.log.push({fecha:fecha_edit,nor:'--',accion:'Eskaria editatu: '+nombre});
-    loading(true);
-    try{
-      await saveEv(e);
-      itxiModal('modal-new');
-      ekEA=e;
-      renderDetaila();render();
-    }catch(err){alert('Gordatzeko errorea: '+err.message);}
-    finally{loading(false);}
+    norModal('Nor editatzen du eskaria?','edicio',{nombre,instalacion,fecha,antName,selB,selC,editId});
   } else {
     // CREATE new event
     const exp=genExpediente();
@@ -1274,8 +1282,8 @@ function renderCal(){
     const evs=ekitaldiak.filter(e=>{if(!e.fecha)return false;if(e.fechaFin)return ds>=e.fecha&&ds<=e.fechaFin;return e.fecha===ds;});
     const evHtml=evs.map(e=>{
       const pend=pendAll(e).length;
-      const tip=e.nombre+'\n📍 '+(e.instalacion||'—')+'\n👤 '+(e.antolatzailea||'—')+'\n🔖 '+estadoInfo(e.estado).label+(pend?'\n⚠️ '+pend+' dok. zain':'\n✅ Dok. osoa');
-      return '<div class="cal-event" style="background:'+accentC(e)+'" onclick="abrirDetaila('+e.id+')" title="'+tip+'">'+e.nombre+'</div>';
+      const tip='<span class="cal-tooltip">'+e.nombre+'<br>📍 '+(e.instalacion||'—')+'<br>👤 '+(e.antolatzailea||'—')+'<br>🔖 '+estadoInfo(e.estado).label+(pend?'<br>⚠️ '+pend+' dok. zain':'<br>✅ Dok. osoa')+'</span>';
+      return '<div class="cal-event" style="background:'+accentC(e)+'" onclick="abrirDetaila('+e.id+')">'+e.nombre+tip+'</div>';
     }).join('');
     cells+='<div class="cal-day'+(isT?' today':'')+(evs.length?' has-events':'')+'"><div class="cal-day-num">'+d+'</div>'+evHtml+'</div>';
   }
