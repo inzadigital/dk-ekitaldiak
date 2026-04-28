@@ -59,6 +59,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
 
 .adi-panel{background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:10px 14px;margin-bottom:14px;display:none}
 .adi-panel.visible{display:block}
+.adi-item-fecha{font-weight:600;color:var(--grisa-osc);margin-right:6px}
+.adi-item-fecha.urgent{color:var(--gorria);font-weight:700}
+.sb-section.collapsible{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.sb-section.collapsible .arrow{font-size:9px;transition:transform .2s;color:var(--grisa-med)}
+.sb-section.collapsible.open .arrow{transform:rotate(90deg)}
+.sb-collapse{display:none}
+.sb-collapse.open{display:block}
+.cal-filter{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cal-filter label{font-size:12px;color:var(--grisa-med);font-weight:600}
+.cal-filter select{padding:5px 10px;border:1px solid var(--muga);border-radius:4px;font-size:12px;font-family:'DM Sans',sans-serif;background:#fff}
 .adi-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#e65100;margin-bottom:6px}
 .adi-item{font-size:12px;color:var(--grisa-osc);padding:3px 0;border-top:1px solid #ffe082;display:flex;align-items:center;justify-content:space-between}
 .adi-item:first-of-type{border-top:none;padding-top:0}
@@ -239,18 +249,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
   <div class="sb-section">Ikuspegia</div>
   <div class="sb-item active" onclick="setView('denak',this)"><span class="icon">📋</span> Ekitaldiak <span class="sb-badge green" id="sb-denak">0</span></div>
   <div class="sb-item" onclick="setView('adi',this)"><span class="icon">⚠️</span> ADI! <span class="sb-badge" id="sb-adi">0</span></div>
-  <div class="sb-item" onclick="setView('tramitatzen',this)"><span class="icon">🔄</span> Tramitatzen <span class="sb-badge orange" id="sb-tram">0</span></div>
-  <div class="sb-item" onclick="setView('baimenduta',this)"><span class="icon">✅</span> Baimenduta <span class="sb-badge green" id="sb-baim">0</span></div>
   <div class="sb-item" onclick="setView('historia',this)"><span class="icon">📁</span> Historia</div>
   <div class="sb-item" onclick="setView('egutegia',this)"><span class="icon">📅</span> Egutegia</div>
   <div class="sb-item" onclick="setView('txostenak',this)"><span class="icon">📊</span> Txostenak</div>
-  <div class="sb-section">Instalazioak</div>
+  <div class="sb-section collapsible" id="inst-toggle" onclick="toggleInst()">Instalazioak <span class="arrow">▶</span></div>
+  <div class="sb-collapse" id="inst-list">
   <div class="sb-item" onclick="setViewInst('Ezkurdi',this)"><span class="icon"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAHPAXQDASIAAhEBAxEB/8QAHQABAAEEAwEAAAAAAAAAAAAAAAECBwgJAwUGBP/EAEcQAAIBAwIEAwUEBQoFAwUAAAABAgMEBQYRBxIhMQhBURMiYXGBFDKRoRVCUrHBCRYjJDNicqKy0SVDdIKSNlRjRISj0uH/xAAWAQEBAQAAAAAAAAAAAAAAAAAAAQL/xAAWEQEBAQAAAAAAAAAAAAAAAAAAARH/2gAMAwEAAhEDEQA/AMywAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhsCQUTnCEXKclGKW7beyS9Tx9hxQ0HfalenbXUlhVyKk4KnGtF7yXknvs38APZgiJIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADaS3YOh4hXd7Y6Jy93joud3StZypJLz2A8DxI8QnDzQ+Vnir2/neX1N7VaVtFy5Pm+35nqOGXE3SPEOylcacyUK9Smv6WhJONSHzTX7jV9c3FxeXNS6vKk6tzWk51ZTe8pSffcup4UMjlMdxvw0cc6m1zzU68Y9pQ5X3+W7YXGYviw1dLSXB7KVres6N5eRVvbyT2e7a32/wC3c166Uq3dtqrF17Sc3dxuoSjNP3nJvq9+/qZF+P7Vv6Q1XidJW1XmpWMPtFxFPtUaaSf0aLM8BMNLO8YdN49puErxSl6JJMDZ3ZSnK2pyqLaTim18TmKae/UqCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcdWEalOVOS3jJNSXqjkIAxU4oeEqhlc/cZbSGZhjqdzNznaVaPNCDf7L3XT4bHruDfBbAcF7C/wBYZi/V/lKFrOc68o8kKUFF7qK3fV9evxL+djFvx0cSoY7B0dBYyuvtl7tVvJQl1hTT6L67NBWJnEbUdxqzXOX1Dc1HOV3cScd32gukfySLz+A/T0slxTusvVhzUcdaS5ZNdpycWvy3Md+y9DOzwGaYnieGV3m69FRrZS5clJrryQckvx6AZGxJIRIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2HGvjPp3hZVsaGXo3N1cXnM4UrdJtRW27e7XqgLngtfpTjzwxz2No3cNT2tpUqd7e43jUg/R7br8z2GO1rpPIR5rPUGPrJ+lZL94HoBufLTyFjU/s722n/hqxf8TnjOElvGUZfJ7gV7jcgATuNykkCdxuQAJ3IB5bX+vtLaJxNXIZ/LW9tCCfLT5t5zfokB9HEHVeM0XpS/1Dlq0YW9pSc+VvrN7dIr4s1ja91Jfav1fktRZGo51rys5x3/Vj5JHvvEVxsyvFHLRtbeFSz0/bTboW7ezqf3p7efRdOuxaTcK7DTWKuM7qPH4W1hz1byvGkkvRvq/w3Npmh8BbaZ0ni8HawjCFlawovl7OSik39WjCnwL6MjnuItzqW5pKVvhqb9k5LdOrLp+6RnguyBUokhEhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwDey3MFPH3K6lxSxiqwatlZP2MvVvl5v4GWfGPiPg+G+lK2WytWMq8k42tspe/Wn5JL0NcPEbWOY13qu51DnK7lXrP3aafuUo+UY/BBY83OnCT96KfzEVyf2a5GvOJUlNfeg4ry38ylyi3spLdd0GsdrYahzths7LNZG3a7ezruJ6PG8XeJuOio2mtcxFLspXEmv3niaUZVJqnCLlOT2SS3bO5o6Q1XWpqpS05lqsH2lCzm0/rsEXBx3iO4t2TTepFcJeVak5b/AJnpsb4tuJdukru3xd0l/wDFyN/vLQWehNaXin9n0nm6jit3tZVP9jpsjjr/AB1Z2+QsbqzrLvCvScJfgwMnsZ4yc1DleR0hb1ku/s7rbf8AynqMd4x8DU5ft2mL2hv39nU59vyRheQ0vQDPCj4ueHMqadW1zFOW3b7Pv/E6vN+MPSVBP9E4LI3ctuntV7NfxMI/Iq55cvL5E0xkFrfxX6/zMKlvgre1wlCXTmj/AElRfKXTYsbqDN5fUWSnkc7kbnIXcn1q16jm/wA+x12/wJi+o0xPyJUZTkoRi5Sk0opebfZEF4/Cbw5lrviPQub2i3icTJXFeTXSU49YR/FLdfEumMvPCzoOOheFVhQrUlC+vo/arl7dW5dY/wCXYuwUUYQp04wpxUYxSSS8kVhBEkIkIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeX4l63wmg9LXWdzNxCnTpQfs6e/vVZeUUvPqTxJ1vgdBabr5zPXcaNGnF8kN/eqS8oxXqzXZxt4o5zibqWV9kKsqVjSk1ZWkX7tOPq15t9evxCx8nGDiLm+JGq62YytWUKCe1rbb+7Rh5L57dz3/AISuEb19qxZzLW7lgMbNOpGXa4qeUfl0e/0LP6Wwl7qTUVjhMfSlWuryqqcEl29X+G5s64T6Kx+gdC4/TePjFq3pr2tRLrUqbe9J/Ng19ktG6Ubhvp3GPlWy/q0On5HmNccFOHGrqTWR03aU6u20atBOnJfSLSLj7AGscYeEPh/DJQuoZPLKjF7+x5o7fLfbf8y+WlNL4bTWCtsNjLOELa3jyx5/fk/i292d2wDXFTt6FPf2dClDf9mCRarxM8OMdrThlkVQsqEMlZ03c29aFNKe8fea3XfdJr6l2imrCFWlKlUipQmnGSfZp+QNaipxlCcoVI8s4ycZL0a6NFLLl+JHRNbQ/FPKWPsnGzu6rurWe3uuM/eaXyba+hbRirEIqKSdzNaSREbne6H0lntY52jh9P2FS8uKkkm4r3IL1kxCuLSGmcvq3UdpgcHbzuL66moQil0ju+8n5I2UcFOHthw50RaYO1hCVdR57qtt1q1H3e/4L6HnPDzwXxPDHEu4qune565ivtN3y9I/3Yb9l1fpuXdfYrFqAEhsVBEhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgDx/FbX2E4e6Vr5vMXCi4pqhRT96rPyij02Uv7fG4+vfXdSFKhQg5znKWySSNbfiJ4nXXEvXVxfQlKGJtZSpWFLfpy7/efxeyCyOk4o8RdTcQs3Uv8APZCrVpKblQtlJ+zor+6ux41pb7vp8So9twb4c5jiVq6hhsZFRoU3Gpd12t40qafXf4vt9Q0yL8CvDKELetxCytu+epvRx6nHtFP3pr6r8GZcJbLY6vS2ItcDp+xw9lTjChaUIUoqK235Ypb/AF23O0QYAAAAAAhkkMDxPFbhnpfiRh42GobPnqU9/YXEFtUpP4Mxn1J4OcvSuZ/zf1NRr0O8I3FLla+De7MzgFYL2/g+15Ke1fNYuEX5xe7R31DwaZB2KdXV8I3O/WKtU4/jzGZQBrFDSvg5xNvc06uotS3N5TjLd0aFH2e//dzfwMidA6F0vobGfo/TWJt7Gn+vOMVz1PjKXmz0wBoSQSEAQwE1IIRIUAAAAAAAAAAAAAAAAAAADcbgAQAJBC7kgAAAPnyF5b2NpUurqrCjQpRcpzm9lFJebK7qvStqE69epGnTpxcpzk9lFLu2YG+KXjlktW5+80zp3I1KOnaD9nN0vddxJd3zLrtv02+AWPt8VHHmrq65lpfSN9OlhaTlG6rRTi7iSe2y3/V7/gjG6K26ehU/gQ9kurDQ+ncza8AGlqmP0Vk9SXNNxlkrjlotrbenFJfvTMQdC6ZyOsNUWOnsbQlUr3lVQ3S/s4t+9J/BLqbQNB6etdK6RxmAtIRjSsqEaa2833k/xbCV32yBCJDIAAAAAEMkAQCQBAJAEAkAQSAAZBICYIABQAAAAAAAAAAAAAAG6AiclGLk3skWd4peInQWhb+riq1evkclT6ToWsFJQfpJ79DqvGDxUqaF0ZHDYe49lm8qnGnJd6VNfel8+qMAK9WrXqyq16kqlWT3lKT3bYWRlvmvGXNc0cTo5T/ZlXuXHf6crPixnjMy0av/ABHRtu6f/wAV22/9Bikn6iT3Jq42B6D8UXDfUUqVvkLqvhbqb25bqCUN/hLf+Be3G31nkbOF3Y3NK5oVFvGpTlumjUfspdy+PhL4o5PR+vrDA3l9Ung8lVjQnSnL3ac5PaMl6d3uVMbCF3JKYSUoxnF7xa3TKtwgU1JqC3bSIq1adKnKpUmoQit5Sk9kl6mKviY8R2Ptsbd6U0LefaL+e9K4v6b3hSj2ag13fx3A854seP0so7zQmka86VvCTp395GWzqesI7eXr8zFWPRbeRXUnKpOVScnKcm3JvzbKdg1A93ws4S6z4j3LWnrGLtKc+WrdV24U4P032e7Og0Jpu/1dqvH6dxsJSr3lZQ3S35Y9239DZ5w+0pjdF6UsdPYqlGNC1pqHMls5yS6yfxYLXhPD7wTwnC/HO6k1e524jtXu5R25V+zH0Xf8S7RVuAyhEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+gAERnCW/LJPZ7PZkQnCabhOMkunR7gVHBfXFKzs613XmoUqMHUnJ+SS3ZznyZaypZHGXVhW/s7ilKlL5NbAa1PETrx8QOJ2Ry9CblY0pO3tE+3JHpzfXZMt18y5nHrhNm+GWo6tO4pOriLiq3ZXS7Si30i/RpFs/MlbidhsSDIiPc5be5qWlxTuqD5atCSqQku6aOKPcmot49Cja1w/wArHNaKw+UjttcWkJdPlt/A7q5r0rehOvXqRp0qcXKc5PZJLzbLbeGC8+18DdMVJPdxteX8JMsH4z+Mt5PKT0Bpu7nRt6SX6Sr0pbSk2t+RNeXVbljNfP4pfEPPLO60bom55bHrSvL6Peo/OMH6b+fwMWdvmU7bPp23JRVSA+xcLgBw3uOJeu6OIcp0rCivbXtSPeMF5fV7L6gXi/k+8fj6+pc7e17J1byhTjGjcNe7Ti9t0vjvsZpnm9A6J05ojDQxmncbSs6Oy55Jbzm/WUn1Z6QJQkgkIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW045cU7XhtQxLurGrcLJXP2dzg9vZpxl73x6pFw8pWqW2NurijS9rUpUZzhDf7zUW0vqYj8eNVUuLnAy7zVjZStcrprJv7bbc3PKkouUN+y6dUwsV8FuLGVs9S8SsdkMhXvI0HXvrJVpuXJGMmmo79l7y6HrfAvqLNag0tnauXyVxeuN9KUPbTcnHfyTfl0MN9O6orYvUF5lXGVb7XZztqiU9ubnabf5GSH8ntqKNLI5/TFT704xuaT39XLf9yC2MyGyC2PiD4r2HC/Syu+WN1lbveFlbc228v2n8F3+h5Twg6s19rbCZjUGr7n2tpWudrFcjSSXdR3fZNNBlV43bbT9bg3Xq5irOF1TrxdhydXKrtLZbb9u5r9fc2Y8fOF+O4n6Vjj7u6rWtxaz9rb1YddpJPo15mtrPY6rictd42upRq2taVKSktm9vgStR8e43KUSTFTHuVFMe5V295dWuy8mBmXp3Xlzw78GuLylpVjRylWn7C0U49d5S2bS+Ce5h1f311kr6vf3tSVW5rzdSrOXeUn1bPT664i6o1pisbjc5cW7tMbHlt6NCm4RXTbdrd9TyJYAQCKJbUVzPsu5n14KNBx0zw0WduafLf5qTqybXWNNPZL/ACpmA0HTVSm6u/s1Nc+37O/U2p8NK+OudBYOri6kJ2jsaXs3F9OkUn+e4ZeiRIAKEkEhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH1TW25h54k9K57hZqm+17pOFOpgs3TlQylnJb01KS7td+rW+/qZhvseL41aahqzhjnMJyp1K9s3T6dpR2kv3BY1cNbPpFRXkt+x6bhrrfOaC1VQ1DgqsIXNNcs4SW8KkPOL+B52vb1batO2uYOFejJwqxa2aku6OPb0Da72KuNT+ITjNY22YuFFVWnOnT6U6FGPvSUd+2+0u/qbCdMYPH6dwdph8ZQhRtLWlGFOMV6Lu/i+5j/wCCrhVW0vgamr8zQcMlk4bUKc11pUv931+jMlPIMWqWtzBrx2aBjhNYWusLNbW2VTp1opJKFSPXf6835Gc+x0GudIaf1phJ4fUWPp3tpJ7qMt04v1TXVAlao9mhLZLdszl1l4SNG31jOOm7y4xV1zJxlObnHbfquu/kdPmfBxg3hk8bqa9jk40926kI+znLb5dETGtYZRfUrT3Oz1ZgL/TOo73BZOlGF1Z1XTnyy3T2e26+D2OsRBG2wEuxTuUVBFO5KZdEtbmSXhC42LSl9T0bqa5k8Tcz5bOtLtbzfk3+y3v9WY27hSae6bT9UExt2pThVpxqU5RlCSTjKL3TT7NMqMWPBpxpjlbKGg9TXn9ft4/1CvVl/awX6jfqum3wRlOEoSQSEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKZRUotNJplQAwY8a/Cb+bWceusLQjHG5CrteU1/y60uu6Xo/eZjZSnKnUhWp/fptTjv6rsbLfE7p6WpeC2oLGEFKrSoOvSX9+Ke372a04pcnnv2DWtoHAzVlHWXDDCZmnKLqTt1TrRj+pKPTb8Ej3Jhh4CdeQscnf6Hv68acLr+sWak+jml70V9I7mZye+wZSAAI2LReKHijHhpoZzs0p5jIN0LOP7L2e838kn9S7xbfj5wzxPEnR1xZ3lJRyFvB1LC4X3qc0u3yfVfULGtXJ313kr6vf39zUubqvN1KtSo93KTe7e5wR7HPlrC6xeVu8ZeQ5Li0rSo1Y+kotp/mjgj2MtEuxSVS7FIAlEEosEgAo+jGXt1jchQyFjWnQureaqUqkHs4yXxNivho4tWvEvR9P7XONPO2cVC9o7/ee3318HszXEep4W64y/D/AFlaajxE3z0pbVqW/StT3W8X+AStpxUeb4c6uxeuNI2WosRWVS3uYbtecJecX8T0iCAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYDA+fIW0LuyrW1SKlCrBwkn2aaNWXE/T89K8Qc3gKkZRlZ3c4x3XeO/Rm1VdjB/wAeeiZ47WVlrK3pNW2RpewrNdlUh13fz5vyCxjhiMle4nJ22Tx9xOhd21SNWlOD2aknv+Bsj8PPEq04laEtsj7SMclbRVK9ov70Zrpzbej7/U1pJPbr3LkeHniXdcNteUL/AJ5Sxly1SvaW/Rxb+9809voBswJR5anr/Rs8fRvnqXFxoVoKpBu4ins1uum+6OhznHDhjiKcp3Oq7KTj+rTUpt/gmBcStOFKnKpUnGEIpuUpPZJLu2YneI3xM0rP7XpfQdSNau+alcZDvGn5NQ9X8eqPh49eKSwyOEutPaGoTqxu6Tp176onFRjLo1Fd99vh5mI8m5Scm223u2/NgVV6lSvVnXrVZVa1STnUnJ9ZSfVtkR7FJVHsZaJdikql2KQAAAAACUSQuxJoXv8ACbxWq6E1nSw+UuZPBZOcaU4yl7tGo3tGfwW7W/yNg1GpCtShVpTU4TipRknumn2ZqIe6lum18jODwgcbbfP4yhonUtxCllbWHLZ1py2VxBeW/wC0uq+gSsmgiFv5koMpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAYBdjw/G7QlpxB4e5DAVoxVecHO2nt1hVS9389j3C7ESW6A1KZvG3mIzF3i8hRlRurWq6VSEu6a/wD5sz4jLzxxcJ5TS4iYO1bkto5OMI9Wuyqfml8kYhLqk000wqZe9FRl1S8mUxpwi91CKfwRV+BAVJBJDe3yAjYqj2PsxGKyWYrKjibG4vqsnsoUIOb3+hcCx4C8WbvHVL6GkrqnThDn5KqcZy+EY7dWTDVs5diNmc15Qr2d3VtLujOhcUpOFSnNbSjJd00cSYxUbMhrYrIl5DBSACCV2BALonoc9jdXNje0byzrToXFCanSqQk1KLXVNNHzlS7lGwXwscZ6PELARw+YrQp6gsqajNN/28F0U18e2/xL5mp7SGocppXUdnnsNcSoXlpUU4ST7rzT+BsD8PPG3FcU7StaO2dhmLSEXWt291NPvKPw6fmEsXf3G5ADKQQiQAAAAAAAAAAAAAAAAAAAAAAAAAAABgMAuwCAHzZGytchZVrK9oQrW9aDhUpzW6lFrZplhcj4TeGl5kK13CeVt41ZuXsqdaKhHd77LePYyDaI2Ax6q+EjhlKlyRr5iMv2vbw//U6LIeDnSUpP7FqDK0l5Kcoy2/CJlFsNgusFsx4RddUtRO1xeQsa+Kb927qSSlFfGO+7LycNfCtonT8aNzqNzz16uslU6UU/hHv+ZkLsNga6nCaawGEto2+KxFnaUo9o06a6Ha8q222WxOw2CLL8euAWneI1pUyFlTp4zPxW9O5hHpU+E15r8DCfWXCXiBpXJXFnf6ayNeNFv+ntaEqtOS9U4po2gbFFajTrQ5akIyi+6ktwsrUZOMoTcJwlCUXtKMls0/RlMvIzm44+F7HavzNxqDS+Rhib6st6tvOP9DOXr0W6bMd9QeG/itifauOBje06fadCtD3vo5bitas+D6cpj7/FX1SxydnXs7mnLllTrQcXv9e58xkAAAKl3KSUywVHuOCnES/4aa3oZ+1pe3oOPs7qj+3TbW6XxPDcyDe/RdGUbX9GajxmrNN2eexFeNa0u6anCSfb4P0Z3Jh14Cdd1aeRyOg7yu3ScftNlFvon154r6RRmLsGaIkJAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+wXYPsEBS1v0DXVFTI7b7iqttxq07wwuMDVyWvrPHW9ulyu8nTUaib7bSS5jW9qOlj6OochSxNb2+PjXkrap+1DfoZZ/wAoJqnH1MXhdK291Cd2q8q9xST3cY9OXf6pmHu5lUMEsgKAAAEAij1nCXVb0TxCxGpG5+yta8fbqL6um2ub8jZ1pXPY3UuBtM1ibmFxaXNNThKL32+D+JqbLx+GvjPkeGufp4/IVp19OXlRKvScv7Bvpzx9PLf6lZbFUSfJiMhZ5XG2+RsK0a9tcU41KU4vdSi1uj6wgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD7Bdg+xx161K3oTrV6kadOCcpTk9kl6tgVNpdX2Rjv4lPERYaOoXOm9J1aV5qFpxnWT5qdr89u8vhv5HjfEz4ko/1rSWg7hNvendZKH6vrGH+5iJXq1K1WVarUnUqTe8pzlvKT9WxVx9Gayd9mcnWyWTual1d15OVWrUe7kz5EQSjKjIJZAUAAALuAu5RVs2nttuejymnrf8Am7a57D3avLeUeS8of8y1qb/rL9lrbrtt12POHJTuK1KMo0asqanHlmk+kl8V5lGSvhK47WmkaMtJavvaixk5b2Vdpy9i2+sW/KPV9TNiwvLa/s6V5Z1qde3rRU6dSEt4yT7NM1HNJppdC/Xh78RGV4e2cMFnaFTLYVSXs9pf0tBekW/L579gzYz+3G5a7R/HrhpqSnTVrn4UK0+9KvCUHF/FtbFyrK+sr6kqtnd0LiDW6lSqKS/II59xuTv1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACHJLu0gPnyl9aY3H1r++uKdvbUIOdSpN7KMUt2zBjxLeIa/1jXuNN6Tr1rLBwk4VK8Hyzudu/VdVHf8T0HjV4vwytw9AadvHK1oS5slWpy6Tkn0p9PTZfiYqr5bBYBgMVUExIHUyuJl3IJAXEAl7IgAF3AXcqKun1Ll8OOFN7r3Rl7mcHW57zH13TuLZrd8vKmpL4dS2Zf/AMDur1p/ilUwtxVjTtsxRcE5Pp7SKcl9XskUry3DHhHdZ/Xlpgc5z0KM6koVlT3U1sntJdum+x13G/hPnuGGop2l3Tnc4utJu0vox92cfSXpI2LVNJ4GeoKOeVhTp5Gk3/TU0ouX+L1KtaaXw2sMBcYPPWdO6s662cZLflf7S9H8QywN4O6YwOZ09D29Nu+3fJUi/ek9vupN7P8A7vUudpW1z2mbilSxV7dTtalVQcKdaXtLeo3sk4t7S36dFuup2cOF1Lh7k6uKuLd3WKvKnLRqpbSkn229Zr9nz6Lcutwo0t/Wp3WSp0r+2oJOxr1nzzpvfsk/ufJNhVzML9p/Rdq7ucp1/ZR9o5RSbe3XdLpufYQu5IZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEpKK3b2Rij4rvEFUxVa40bou6jG9jvC8vYy39n5ckNv1u/X5HtPFtxjpaD01PT2IrxlqDIwcYNdXbw85v0fVbb+pgHVq1bipKvcVJVK025TnJ7uTfdhStWq16sqtacp1JycpSk93Jv1KSA2FAyNwTViV2DC7EMip3Pf8FOFeouJ+oI2ONpu3sKUl9rvZx3hSXovV9+m52PAbg7nOJ2ZioU52mGoyTubyS2W37MN+7/ABNhOhdI4LRWnrbBYCyp21tRjtul7036yfmwlrWlxZ0HluHmsrrT+VjJqHvW9bl2Van5SX4M8kbHvE3wqt+JWiav2aEYZqxjKrZ1UusmlvyP4Pbb6mujIWdzj7+vY3dKVK4t5unUhJbOMkDXAF3AKKj7cBk7rC5yxy1pUcK1pcQrRa/utNr6pHwbkp9Ro2qcM9TWmr9FYzUFnUU43VvFzafaaW0l+O56UxB8AmuOV5PQt5X7f1qz5peW65or6ybMvis18WVxljlLKpZX9tTr0JraUJo57O2o2ltTtqEFCnTXLFLyRzAILuSEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwZGrKhj7mvH71OlKa+aTZznxZ97YHINf8Atan+lgauOKGbyGotfZvKZO4nXryvasE5PflhGTUYr0SR5pI+zOybzuRk31d5W3/82fIg0p2HKyV3JMrFPKyUmSOvNFLru9tkt2BDReDw78EspxKyivb6NWywFvNOrWa2df8AuQ/36eZ3fh88PWd1rlbfK6ls6uO07Bqb9otqlyv2UvR+u5nhgcPjcFibbFYq0pWtnbQUKVOEUkkEtfLpXTmJ0zhbfEYWzpWlpbwUYQgtt9l3b838TtuVlQCap2ZiF41+D72qcQ9O2a32SydGlHv5Kol+CfyMvz5slZW9/Y17G7pKtQr05U6kJdVKLWzQGoxPdbolF1vErwsuOG2uKkLaEp4a/m6tnU26R36uH0e6XwRaldwqdhsSQyar1HCjVFbRvEHD5+hOUfs9zFVF5ShLo0/x3+htHxV9bZPG2+Qs6iqW9xTjUpyXnFrdM1HOLl0Xcz88EeuFqPhhHBXNbmv8NNUdpS6ul15H+ETUSr/ruSQu5JWTcbkMBNSAgFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+DUj5dO5KXpaVX/kZ951mrZOGlstJeVlW/0MDVFlmp5e9qLvK5qP/Mz50cl2+e+uZPzrTf5nGGjzABKsRzbb/Ay48FXB62urN691Njo1lNr9GU60eiS6ups/XpsW28H/AA50/r/XF09QOVSjjYKtG1T6Vn0+98FubA7O1t7K2p2tpRhRo048sIQWyivREkSuWlGFOmoQioxS2SS7FRARcZSARuMEgjckYPE8aNAY3iLoi8wV9Tj7Vxc7Wrt1p1F2a/d9TWhqzT+T0vqO9wOXpOle2dRwqLbbfZ7br4M2yPvuY0eNPhItRYCWuMJbp5XHwf2mnTXWvS838WtvzGLrB4gj3k+q2+BKJi6JdT3nBDiPkOGWtaWdtaUrm2nB07q2UuX2kW12fk1t6eZ4RElg2O8KOP2g9fOna0L9Y7JS6fZLqSjJv+63tzfRF2lJNbrszUVRqVKFVVqNSdOonupQezX1RkT4f/ErmdL3dDCa0rVclh5NQhcy61bffp5d4/TfuVMZ2g6/A5jH53G0cjiryhd2laClCpSkpJp/Ls/gdgENxuNhsA3A2AAAAAAAAAAAAAAAAAAAAAAAAAAAADp9avbSGY/6Gt/oZ3B02t//AEdmf+hrf6GBqgqv+sVt/OpJ/mQmKnWtU/xv94SDSQNwRYvf4KtSU8DxpoWleSjTylCVsm305m4tf6WbBzVFoK9r47W2FvqE3CpQvISTXz2/ibW6UuenGXk1uEqsIbEpFZCCRsEqCRsABx16VOtRnSqwjOE01KMlumjkDCtdPiv4Xz4f69qXdhR2wuUk6ts12hP9aH06fiWb7Gz7jbw6xvErRVfA33uVlvUta6ju6VRdn8t0tzXPxE0Tn9CagrYbUFlUoVYSfs6nL7lWPlKLJjTzSJIRJQIaJDYHv+EnFzWHDW+U8Peyr2MnvWsq0nKnJfDf7r+WxmPwm8Smh9ZUqdtlK/6Byb2ToXP3ZP8AuyW62+bRr4D6rZrf0CNuVnd2t3SVa0uaVem+0qc1Jfkc26NW+iuJ+udHVIywWoryhSj/AMipUc6X/i3sX80B4wcnQqU7bWeChXp9pXNo/e+fJsl+YMZm7g8Xw04m6P4hWDutN5OFecFvVoT2VSn81uez3CJBG5O4AAAAAAAAAAAAAAAAAAAAAAAAA6TXj20Vmmn/APQ1v9DO7Oj17/6KzX/Q1v8AQwNUU9/aS/xMlEVH/SS+bJQaQu5JC7khY7DTUuTUmMk+yuob/wDkbYrVqVtTkuzijUja1HQu6NZPbkqRl+DRtT4c5Wlm9C4bLUainC6tKdVPf1QSvQrsAuwDIAAAAABgMCEec13orTetcXPG6jxdG9ote65Jc0H6xfkz0aJaAwn4seE3M42VfI6GvFkLVJy+xV/7VfBS8/lsY1ZrF5LC5KrjctZ17K8pPapRrQcZR+jNtbW54bihwq0dxCx87fOYyn9o2/o7qmuWrB+qfn9dwrWFut9tyGXs4yeHPV+hHVyONpzzeHT3VWhHmqwX96K6v5pFk5dJOLTTT2aa2aYUAAAiXVbEgDudF6mzOj89b5zA3tS0vKMk04vpNecZL0Zl/hPF9pj+alvc5bE3v6aSUK1tSXuNpdZKW3RP0+JhOAjM3EeMfDV8xSoZHS1xaWMpbTrq5U3BevLyoyixd7bZKwt760qxq0K9NVKcovdNM1HT6xcfJrZmyrwr3te+4G6aq3EnKUbbk5n3aUmBdEABAAAAAAAAAAAAAAAAAAAAAAOm10t9GZpP/wBjW/0M7k6zVVP22msnS235rOqv8jA1NVEvaS/xP94RzZKn7HKXdBraVOvOD+kmjhQaQu5JC7khYPsbCPBRmKmT4G2FCtUcqtjWnbbPyjFJI17S3a6Gav8AJ737raMzthKX9hdqaX+Lf/YJWUi7ALsAyAAAAAAAAAACGCWQBTOEJ03TnCMoSWzjJbposXxq8N+lNbxqZDDRp4PLPr7SlHanUfpKK6L6IvsANXPErhpq3h/kp2moMXVhRUmqd3TXNSqLye67fXY8abZ89hcXn8ZVxuZsaF5a1U1KlVgpRf4mKHGvwocntsvw7rN77znjq0n/AJJdfw6BWI4PuzmJyeDydXG5ixr2V3SbU6daOzPh3CgJIk+VbgI06lWap0Y81ST5Yr1fkjaRwWwUtN8L8Bh5xUalC0jz7er3f8TBLwo6FlrXizYTr0efG4uSurltdG094xfz2ZsbpRjCEYQW0YrZL0QSqwAEAAAAAAAAAAAAAAAAAAAAAA4MhTVWwuKb/XpSj+KZziS3TTA1Q6+tvseus/bbbezyVxH/APIzpEy/vGjgRxCuuJ+dv8RgpXdneXU69GrCrHZqbb/iebtfDpxarx5o6dhD/HdQX8Q0tMu5J2ertP5HS2er4TLKgryh0qKjWjVin6c0W0dT1JqxyLuZXfyeV7yZDVFk9tpRozX05zE5bp7ovL4UeJGK4ea6qVczCp9jyEY0Z1YdqT6+816dRpWxUHHa1qdxb069GanTqRUoyXmmcg1gABQAAAAAAAAZBIAgEgCCH1KgB4ribwx0hxCxztdQ4ynVqpNU7mCSq036qW3QwY8RfBW44U3NteQy1G9xt9VcLeLXLVjt16rd7/M2NTajFttJLzfka3vFFxAr674n3zp1m8ZjpfZrWHlsu8vnu2voFi1Kb2Eui3Anvt069QrPbwK6dtsdwejmXSSusnXlOcturgkuVfmzIJdy2vhixNTDcDtM2tWDhOdnCrKL7ptL/YuUu4ZSAAAAAAAAAAAAAAAAAAAAAAAAD58jeW2Psa17eVoULejB1KlST2UYpbtmPerPFroTF3Fe2xdpkMpUpScVOFOKpya9Hzb7fQDIirKnSpyqVJxhBdW5PZIxX8YPGylY4mGkdF5iEr24lJXtxbT3dKHT3VL1fXt6FnOLviQ1rru3q46y/wCBYuT2dG3m/aTXxn0a+RZVvd827bfVtvq2FTWqVK1WVWtUnVqSe8pzk5Sb9W2UoEGWoqIfVcu+yZHUNMYNjnhF1Le6n4L4y4v6vta9rJ20pvvLlSa3/Eu+Ym/yfero1cRl9G1IKE6FT7XSlv8AeUkk19OUyyKzQAFQAAAAAAAAAAAAAAAB5Ti9lHheGWosnGbhO3sKs4SXlJRexq0rzdSvUqy6yqTlNt+e7bNrOvNPUNV6QymnbmpKnSv7edBzj3hzLbdfiYB618OnE3TuRq0LTCzy9opP2de1fNuvLdPbZhYs+e14JaJu9f8AETG4KhTk7d1FUuqqXSnTTW7f4o9do7w3cUM/d04XWH/RFvJ+9Wu3tsvPZLfqZm8DOEeA4XYJ21hF3OQrpO6vKkfem/Rei+AFwbC1oWVlRs7amqdGjBQhFdkkc67kgIAAAAAAAAAAAAAAAAAAAAAAAAtn4mNK6i1jwoyGF0xVcb6pKEvZ8/L7WKknKO/xSaMBcvwn4j4u5+zXejsxGa6e5bSa+j8zaK+pQ6VNveVOL+a3A1b0uGXEKo9oaMzcv/tJHPHhNxMn93RGb+trI2gqlSXanBf9qJ5IfsR/ALrWTb8FOK1f7mh8v9beS/gfXS4B8Xar2WjL2H+OMl/A2VqKXZbDlW+4Na6cf4aeL11JJ4Kjb7+dWs47fkeqxfhF4hXDi8hkcZaxfflnztfuM7dkAasP4efD5Q4YZ2pqC6zc8hkJ0fZKMKfs4QT3T6bvfuX5QCCJAAAAAAAAAAAAAAAAAAEMhksAEiWF2DAjclMgIIkABQAAAAAAAAAAAAAAAAAAAAAAAEbDYkARsNiQBGw2JAEbEpAAAAAAAAAAAAAAAAAAAABGw2JABBgARsSkADAAAAAAAAH/2Q==" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;display:inline-block"></span> Ezkurdi</div>
   <div class="sb-item" onclick="setViewInst('San Fausto',this)"><span class="icon">⚾</span> San Fausto</div>
   <div class="sb-item" onclick="setViewInst('Tabira',this)"><span class="icon">⚽</span> Tabira</div>
   <div class="sb-item" onclick="setViewInst('Arripausueta',this)"><span class="icon">🏉</span> Arripausueta</div>
   <div class="sb-item" onclick="setViewInst('Landako I',this)"><span class="icon">🏀</span> Landako I</div>
   <div class="sb-item" onclick="setViewInst('Landako II',this)"><span class="icon">🏊</span> Landako II</div>
+  </div>
 </div>
 
 <div class="main">
@@ -289,6 +299,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
       <button class="btn btn-primary" onclick="abrirModalBerria()">＋ Ekitaldi berria</button>
     </div>
     <div class="cal-wrap">
+      <div class="cal-filter">
+        <label for="cal-inst-filter">Instalazioa:</label>
+        <select id="cal-inst-filter" onchange="renderCal()">
+          <option value="">Denak / Todas</option>
+          <option>Ezkurdi</option>
+          <option>San Fausto</option>
+          <option>Tabira</option>
+          <option>Arripausueta</option>
+          <option>Landako I</option>
+          <option>Landako II</option>
+        </select>
+      </div>
       <div class="cal-nav">
         <button class="btn btn-secondary btn-sm" onclick="calMove(-1)">← Aurrekoa</button>
         <div class="cal-title" id="cal-title"></div>
@@ -748,8 +770,6 @@ function renderSidebar(){
   const adi=act.filter(e=>{const d=egunakFalta(e.fecha);return(d!==null&&d<=7)||pendAll(e).length>0;});
   document.getElementById('sb-denak').textContent=act.length;
   document.getElementById('sb-adi').textContent=adi.length;
-  document.getElementById('sb-tram').textContent=ekitaldiak.filter(e=>e.estado==='tramitatzen').length;
-  document.getElementById('sb-baim').textContent=ekitaldiak.filter(e=>e.estado==='baimenduta').length;
 }
 function renderAdi(){
   const panel=document.getElementById('adi-panel');
@@ -758,7 +778,9 @@ function renderAdi(){
   panel.classList.add('visible');
   document.getElementById('adi-list').innerHTML=items.map(e=>{
     const d=egunakFalta(e.fecha);const p=pendAll(e).length;
-    let msg='<strong>'+e.nombre+'</strong>';
+    const fechaStr=e.fecha?fmtF(e.fecha,'eu'):'--';
+    const urgent=(d!==null&&d<=7);
+    let msg='<span class="adi-item-fecha'+(urgent?' urgent':'')+'">'+fechaStr+'</span><strong>'+e.nombre+'</strong>';
     if(d!==null&&d<=7)msg+=(d<0?' — ⛔ AMAITUTA':' — 🔴 '+d+' egun falta');
     if(p>0)msg+=' — '+p+' dok. zain';
     return '<div class="adi-item"><span>'+msg+'</span><button class="btn btn-xs btn-secondary" onclick="abrirDetaila('+e.id+')">Ikusi</button></div>';
@@ -1069,52 +1091,106 @@ function sortuErantzuna(lang){
   const ep=calcEpeak(e);
   const docDate=ep[0]?.fecha;
   const dStr=docDate?fmtF(docDate.toISOString().split('T')[0],lang):'--';
+  const docOk=pendAll(e).length===0;
   const tasaTxt=e.tasa?('\n  -- '+(lang==='eu'?'Zerbitzuaren ordainketa: ':'Pago del servicio: ')+e.tasa):'';
   let txt='';
   if(lang==='eu'){
     if(e.estado==='ukatua'){
       txt='Egun on,\n\n"'+e.nombre+'" ekitaldirako eskaerari dagokionez, ezin dugu onartu:\n\nArrazoia: '+(e.motivoUkapen||'--')+'\n\nBeste aukera batzuk aztertzeko, jarri gurekin harremanetan.\n\nAgur bat,\nDurango Kirolak';
     }else if(e.estado==='jasoa'){
-      txt='Egun on,\n\n"'+e.nombre+'" ekitaldirako zure eskakizuna jaso dugu.\n\n';
-      if(e.expediente)txt+='Erreferentzia zenbakia: '+e.expediente+'\n\n';
-      txt+='Eskakizuna aztertzen ari gara eta laster jakinaraziko dizugu. Bitartean, instalazioaren erabilgarritasuna berresten ari gara.\n\n';
-      txt+='Edozein galderetarako, jarri gurekin harremanetan:\n'+ADMIN+'\n\nAgur bat,\nDurango Kirolak';
+      txt='Egun on,\n\nJaso dugu zure eskaera "'+e.nombre+'" ekitaldirako Durango Kirolaken instalazioak erabiltzeko.\n\n';
+      if(e.expediente)txt+='Espediente zenbakia: '+e.expediente+'\n\n';
+      txt+='*** GARRANTZITSUA -- IRAKURRI ARRETAZ ***\n\n';
+      txt+='Komunikazio hau ESKAERA TRAMITATZEKO da, EZ baimena emateko.\n\n';
+      txt+='Ekitaldia EZIN DA EGIN gure idatzizko BAIMENA jaso arte. Baimena emateko, hiru baldintza bete behar dira:\n';
+      txt+='  1. Eskatutako dokumentazio guztia entregatzea epe barruan.\n';
+      txt+='  2. Instalazioaren erabilgarritasuna baieztatzea.\n';
+      txt+='  3. Durango Kirolaken berariazko ONARPENA jasotzea.\n\n';
+      txt+='Hauetako baldintzaren bat betetzen ez bada, ekitaldia ezin izango da egin Durango Kirolaken instalazioetan.\n\n';
+      txt+='Eskaeraren xehetasunak:\n';
+      txt+='  -- Ekitaldia: '+e.nombre+'\n';
+      txt+='  -- Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+'\n';
+      txt+='  -- Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='  -- Instalazioa: '+(e.instalacion||'--')+'\n';
+      txt+='  -- Antolatzailea: '+(e.antolatzailea||'--')+'\n\n';
+      txt+='Bidaliko dizugu erantzun zehatza laster, dokumentazio eskakizunekin.\n\nGalderarik baduzu: '+ADMIN+'\n\nEskerrik asko,\nDurango Kirolak';
+    }else if(e.estado==='baimenduta'&&docOk){
+      txt='Egun on,\n\n*** ZURE EKITALDIA BAIMENDUTA DAGO ***\n\n';
+      if(e.expediente)txt+='Espedientea: '+e.expediente+'\n';
+      txt+='Ekitaldia: '+e.nombre+'\n';
+      txt+='Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+'\n';
+      txt+='Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='Instalazioa: '+(e.instalacion||'--')+'\n\n';
+      txt+='Dokumentazio guztia jaso dugu eta instalazioaren erabilgarritasuna baieztatu da. Ekitaldia ZILEGI da adierazitako baldintzetan.'+tasaTxt+'\n\n';
+      txt+='Gogoratu betebehar orokorrak:\n'+D_ITEMS_EU.map(d=>'  -- '+d).join('\n')+'\n\n';
+      txt+=ZEH_EU+'\n\n';
+      txt+='Aldaketarik edo ezeztatzerik bada, jakinarazi ahalik eta azkarren mesedez: '+ADMIN+'\n\nEskerrik asko zure lankidetzagatik.\nDurango Kirolak';
     }else{
-      txt='EKITALDIA: '+e.nombre+'\n';
-      if(e.expediente)txt+='ESPEDIENTE ZBK.: '+e.expediente+'\n';
-      txt+='DATA: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+' | ORDUTEGIA: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
-      txt+='INSTALAZIOA: '+(e.instalacion||'--')+(e.besteak?'\nBESTEAK: '+e.besteak:'')+'\n';
-      txt+='\n!!! GARRANTZITSUA: Permisu hau BALDINTZATUTA dago. Dokumentazio GUZTIA jaso arte ez da instalazioa bermatuta egongo.\n\n';
-      txt+='Ekitaldia hasi baino '+(e.plazoAntes||15)+' egun lehenago, bidali mezu helbide honetara:\n'+ADMIN+'\n\n';
-      txt+='Dokumentazioa erantsi:\n';
-      txt+=pend.length?pend.map(p=>'  * '+p).join('\n'):'  (Dokumentazio guztia jasota)';
-      txt+=tasaTxt;
-      if(extras.length)txt+='\n\nHorrez gain:\n'+extras.map(p=>'  * '+p).join('\n');
-      txt+='\n\nBetebeharrak:\n'+D_ITEMS_EU.map(d=>'  * '+d).join('\n');
+      // Tramitatzen, edo Baimenduta dokumentazio osoa gabe
+      txt='Egun on,\n\nZure eskaera "'+e.nombre+'" ekitaldirako tramitatzen ari da.\n';
+      if(e.expediente)txt+='Espedientea: '+e.expediente+'\n';
+      txt+='\n*** EKITALDIA EZ DAGO BAIMENDUTA OINDIO ***\n\n';
+      txt+='Baimena lortzeko, dokumentazio hau entregatu behar duzu '+(e.plazoAntes||15)+' egun lehenago, hots, '+dStr+' baino lehen, helbide honetara:\n'+ADMIN+'\n\n';
+      txt+='Ekitaldiaren xehetasunak:\n';
+      txt+='  -- Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+'\n';
+      txt+='  -- Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='  -- Instalazioa: '+(e.instalacion||'--')+(e.besteak?'\n  -- Besteak: '+e.besteak:'')+tasaTxt+'\n\n';
+      txt+='ZAIN DAGOEN DOKUMENTAZIOA:\n';
+      txt+=pend.length?pend.map(p=>'  [ ] '+p).join('\n'):'  (Dokumentazio guztia jasota dago)';
+      if(extras.length)txt+='\n\nINFORMAZIO OSAGARRIA:\n'+extras.map(p=>'  -- '+p).join('\n');
+      txt+='\n\nDokumentazio osoa jaso eta erabilgarritasuna baieztatu ondoren, BAIMEN OFIZIALA bidaliko dizugu. Une horretara arte ekitaldia ez dago baimenduta.\n\n';
+      txt+='Betebehar orokorrak:\n'+D_ITEMS_EU.map(d=>'  -- '+d).join('\n');
       txt+='\n\n'+ZEH_EU;
-      txt+='\n\nAdeitasunez,\nDurango Kirolak';
+      txt+='\n\nGalderarik baduzu, erantzun mezu honi.\n\nAdeitasunez,\nDurango Kirolak';
     }
   }else{
     if(e.estado==='ukatua'){
       txt='Buenos días,\n\nEn relación con la solicitud para "'+e.nombre+'", lamentamos comunicarles que no podemos atender la petición:\n\nMotivo: '+(e.motivoUkapen||'--')+'\n\nPueden contactarnos para explorar otras alternativas.\n\nReciban un cordial saludo,\nDurango Kirolak';
     }else if(e.estado==='jasoa'){
-      txt='Buenos días,\n\nHemos recibido su solicitud para el evento "'+e.nombre+'".\n\n';
-      if(e.expediente)txt+='Número de referencia: '+e.expediente+'\n\n';
-      txt+='Estamos analizando la solicitud y le informaremos en breve. Mientras tanto, estamos confirmando la disponibilidad de la instalación.\n\n';
-      txt+='Para cualquier consulta, puede contactarnos en:\n'+ADMIN+'\n\nReciban un cordial saludo,\nDurango Kirolak';
+      txt='Buenos días,\n\nHemos recibido su solicitud para el evento "'+e.nombre+'" en las instalaciones de Durango Kirolak.\n\n';
+      if(e.expediente)txt+='Nº de expediente: '+e.expediente+'\n\n';
+      txt+='*** IMPORTANTE -- LEER CON ATENCION ***\n\n';
+      txt+='Esta comunicación es para TRAMITAR la solicitud, NO supone autorización.\n\n';
+      txt+='El evento NO PUEDE REALIZARSE hasta recibir nuestra AUTORIZACION por escrito. Para autorizarlo, deben cumplirse tres condiciones:\n';
+      txt+='  1. Entregar toda la documentación solicitada en plazo.\n';
+      txt+='  2. Confirmar la disponibilidad de la instalación.\n';
+      txt+='  3. Recibir la APROBACION expresa de Durango Kirolak.\n\n';
+      txt+='Si no se cumple alguna de estas condiciones, el evento no podrá realizarse en las instalaciones de Durango Kirolak.\n\n';
+      txt+='Datos de la solicitud:\n';
+      txt+='  -- Evento: '+e.nombre+'\n';
+      txt+='  -- Fecha: '+fmtF(e.fecha,'es')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'es'):'')+'\n';
+      txt+='  -- Horario: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='  -- Instalación: '+(e.instalacion||'--')+'\n';
+      txt+='  -- Organizador: '+(e.antolatzailea||'--')+'\n\n';
+      txt+='Les enviaremos respuesta detallada en breve, con los requisitos de documentación.\n\nConsultas: '+ADMIN+'\n\nGracias,\nDurango Kirolak';
+    }else if(e.estado==='baimenduta'&&docOk){
+      txt='Buenos días,\n\n*** SU EVENTO HA SIDO AUTORIZADO ***\n\n';
+      if(e.expediente)txt+='Expediente: '+e.expediente+'\n';
+      txt+='Evento: '+e.nombre+'\n';
+      txt+='Fecha: '+fmtF(e.fecha,'es')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'es'):'')+'\n';
+      txt+='Horario: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='Instalación: '+(e.instalacion||'--')+'\n\n';
+      txt+='Hemos recibido toda la documentación y confirmado la disponibilidad de la instalación. El evento queda AUTORIZADO en las condiciones indicadas.'+tasaTxt+'\n\n';
+      txt+='Recuerden las obligaciones generales:\n'+D_ITEMS_ES.map(d=>'  -- '+d).join('\n')+'\n\n';
+      txt+=ZEH_ES+'\n\n';
+      txt+='En caso de modificación o anulación, comunicarlo lo antes posible: '+ADMIN+'\n\nGracias por su colaboración.\nDurango Kirolak';
     }else{
-      txt='EVENTO: '+e.nombre+'\n';
-      if(e.expediente)txt+='N. EXPEDIENTE: '+e.expediente+'\n';
-      txt+='FECHA: '+fmtF(e.fecha,'es')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'es'):'')+' | HORARIO: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
-      txt+='INSTALACION: '+(e.instalacion||'--')+(e.besteak?'\nOTROS: '+e.besteak:'')+'\n';
-      txt+='\n!!! IMPORTANTE: Este permiso esta CONDICIONADO. La instalacion no quedara reservada hasta recibir TODA la documentacion.\n\n';
-      txt+='Antes del '+dStr+', enviar correo a:\n'+ADMIN+'\n\nAdjuntar:\n';
-      txt+=pend.length?pend.map(p=>'  * '+p).join('\n'):'  (Toda la documentacion recibida)';
-      txt+=tasaTxt;
-      if(extras.length)txt+='\n\nAdemas:\n'+extras.map(p=>'  * '+p).join('\n');
-      txt+='\n\nObligaciones:\n'+D_ITEMS_ES.map(d=>'  * '+d).join('\n');
+      // Tramitatzen, o Baimenduta sin documentación completa
+      txt='Buenos días,\n\nSu solicitud para el evento "'+e.nombre+'" se encuentra en trámite.\n';
+      if(e.expediente)txt+='Expediente: '+e.expediente+'\n';
+      txt+='\n*** EL EVENTO AUN NO ESTA AUTORIZADO ***\n\n';
+      txt+='Para obtener la autorización, deben entregar la siguiente documentación con '+(e.plazoAntes||15)+' días de antelación, es decir, antes del '+dStr+', en:\n'+ADMIN+'\n\n';
+      txt+='Datos del evento:\n';
+      txt+='  -- Fecha: '+fmtF(e.fecha,'es')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'es'):'')+'\n';
+      txt+='  -- Horario: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
+      txt+='  -- Instalación: '+(e.instalacion||'--')+(e.besteak?'\n  -- Otros: '+e.besteak:'')+tasaTxt+'\n\n';
+      txt+='DOCUMENTACION PENDIENTE:\n';
+      txt+=pend.length?pend.map(p=>'  [ ] '+p).join('\n'):'  (Toda la documentación recibida)';
+      if(extras.length)txt+='\n\nINFORMACION ADICIONAL:\n'+extras.map(p=>'  -- '+p).join('\n');
+      txt+='\n\nUna vez recibida toda la documentación y confirmada la disponibilidad, les enviaremos la AUTORIZACION OFICIAL. Hasta ese momento el evento no está autorizado.\n\n';
+      txt+='Obligaciones generales:\n'+D_ITEMS_ES.map(d=>'  -- '+d).join('\n');
       txt+='\n\n'+ZEH_ES;
-      txt+='\n\nReciban un cordial saludo,\nDurango Kirolak';
+      txt+='\n\nSi tienen dudas, respondan a este mensaje.\n\nReciban un cordial saludo,\nDurango Kirolak';
     }
   }
   const el=document.getElementById('erantzun-text');
@@ -1507,12 +1583,18 @@ function renderCal(){
   document.getElementById('cal-head').innerHTML=['Al','Ar','Az','Og','Or','La','Ig'].map(d=>'<div class="cal-head">'+d+'</div>').join('');
   const first=new Date(y,m,1);let sd=first.getDay();sd=(sd+6)%7;
   const dim=new Date(y,m+1,0).getDate();const today=new Date();
+  const filtroInst=(document.getElementById('cal-inst-filter')?.value||'').toLowerCase();
   let cells='';
   for(let i=0;i<sd;i++)cells+='<div class="cal-day other-month"></div>';
   for(let d=1;d<=dim;d++){
     const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const isT=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
-    const evs=ekitaldiak.filter(e=>{if(!e.fecha)return false;if(e.fechaFin)return ds>=e.fecha&&ds<=e.fechaFin;return e.fecha===ds;});
+    const evs=ekitaldiak.filter(e=>{
+      if(!e.fecha)return false;
+      if(filtroInst&&!(e.instalacion||'').toLowerCase().includes(filtroInst))return false;
+      if(e.fechaFin)return ds>=e.fecha&&ds<=e.fechaFin;
+      return e.fecha===ds;
+    });
     const evHtml=evs.map(e=>{
       const pend=pendAll(e).length;
       const tip='<span class="cal-tooltip">'+e.nombre+'<br>📍 '+(e.instalacion||'—')+'<br>👤 '+(e.antolatzailea||'—')+'<br>🔖 '+estadoInfo(e.estado).label+(pend?'<br>⚠️ '+pend+' dok. zain':'<br>✅ Dok. osoa')+'</span>';
@@ -1549,6 +1631,40 @@ function setFilter(f,btn){filtroActual=f;document.querySelectorAll('.filter-btn'
 function bilatu(val){bilaketa=val;renderLista();}
 function abrirModal(id){document.getElementById(id).classList.add('open');}
 function itxiModal(id){document.getElementById(id).classList.remove('open');}
+
+function toggleInst(){
+  document.getElementById('inst-toggle').classList.toggle('open');
+  document.getElementById('inst-list').classList.toggle('open');
+}
+
+// Copiar al portapapeles (con fallback para navegadores antiguos o sin permiso)
+async function kopiatu(textareaId,btn){
+  const el=document.getElementById(textareaId);
+  if(!el){console.error('kopiatu: ez da aurkitu',textareaId);return;}
+  const txt=el.value||el.textContent||'';
+  if(!txt.trim()){
+    if(btn){const orig=btn.innerHTML;btn.innerHTML='⚠️ Hutsik';setTimeout(()=>{btn.innerHTML=orig;},1500);}
+    return;
+  }
+  let ok=false;
+  // 1) API moderna (HTTPS)
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    try{await navigator.clipboard.writeText(txt);ok=true;}catch(e){console.warn('clipboard API error:',e);}
+  }
+  // 2) Fallback: select + execCommand
+  if(!ok){
+    try{
+      el.focus();el.select();el.setSelectionRange(0,99999);
+      ok=document.execCommand('copy');
+    }catch(e){console.warn('execCommand error:',e);}
+  }
+  if(btn){
+    const orig=btn.innerHTML;
+    btn.innerHTML=ok?'✅ Kopiatuta':'❌ Errorea';
+    btn.disabled=true;
+    setTimeout(()=>{btn.innerHTML=orig;btn.disabled=false;},1500);
+  }
+}
 
 // INIT
 async function init(){
