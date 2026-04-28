@@ -179,6 +179,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
 .ac-oharra{font-size:10px;color:var(--gorria);font-weight:600}
 
 .req-list{display:flex;flex-direction:column;gap:5px}
+.ai-filled{box-shadow:inset 0 0 0 2px var(--berde),0 0 0 1px var(--berde-osc) !important;background:var(--berde-arg) !important;transition:all .3s}
+.ia-eskaera-box{background:var(--berde-arg);border:1px dashed var(--berde-osc);border-radius:6px;padding:12px;margin-bottom:14px}
+.ia-eskaera-box-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--berde-osc);margin-bottom:8px}
+.ia-eskaera-textarea{width:100%;min-height:80px;padding:9px;border:1px solid var(--muga);border-radius:4px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;outline:none;background:#fff}
+.ia-eskaera-textarea:focus{border-color:var(--berde)}
+.ia-status{font-size:11px;color:var(--grisa-med);margin-left:4px}
+.ia-status.ok{color:var(--berde-osc);font-weight:600}
+.ia-status.err{color:var(--gorria);font-weight:600}
 .req-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--muga);border-radius:4px;font-size:12px;cursor:pointer;transition:all .15s}
 .req-item:hover{border-color:var(--berde)}
 .req-item.sel{background:var(--berde-arg);border-color:var(--berde)}
@@ -449,6 +457,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
 <div class="modal">
   <div class="modal-header"><div class="modal-title" id="modal-new-title">➕ Ekitaldi berria</div><button class="close-btn" onclick="itxiModal('modal-new')">✕</button></div>
   <div class="modal-body">
+    <div class="ia-eskaera-box" id="ia-eskaera-box">
+      <div class="ia-eskaera-box-title">✨ IA laguntzailea — Eskaera testua itsatsi / Pegar texto de la solicitud</div>
+      <textarea id="ia-eskaera-txt" class="ia-eskaera-textarea" placeholder="Hemen itsatsi eskaera-emaila edo mezua osorik. La IA leerá el email y rellenará el formulario abajo. Berde dauden eremuak IAk bete dituenak dira — berrikusi mesedez."></textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+        <button id="ia-btn" class="btn btn-primary btn-sm" onclick="iaBeteEskaera()">✨ Bete formularioa</button>
+        <button class="btn btn-secondary btn-sm" onclick="iaGarbituTestua()">🗑️ Testua garbitu</button>
+        <span id="ia-status" class="ia-status"></span>
+      </div>
+    </div>
     <div class="form-grid">
       <div class="form-group full">
         <label class="form-label">Ekitaldi izena *</label>
@@ -1222,6 +1239,178 @@ function toggleReq(id,prefix){
   const el=document.getElementById(prefix+id);const ch=document.getElementById((prefix==='req-'?'rch-':'rchc-')+id);
   el.classList.toggle('sel');ch.checked=el.classList.contains('sel');
 }
+// ============================================================
+// IA — Pegar email y rellenar formulario
+// ============================================================
+const IA_INSTALACIONES=['Ezkurdi Pilotalekua','San Fausto Frontoia','Tabira Futbol Zelaia (11)','Tabira Futbol Zelaia (7)','Tabira Saskibaloi Kantxa','Arripausueta Errugbi Zelaia','Arripausueta Futbol Zelaia','Arripausueta Padel Pistak','Arripausueta Tenis Pistak','Landako I Saskibaloi Kantxa','Landako I Barrio Aretoa','Landako II Igerilekuak','Hainbat instalazio'];
+const IA_TIPOS=['txapelketa_federatua','torneo_deportivo','campus','ekitaldi_kulturala','ekitaldi_udala','lagunartekoa','bestea'];
+
+function iaGarbituTestua(){
+  const txt=document.getElementById('ia-eskaera-txt');if(txt)txt.value='';
+  const st=document.getElementById('ia-status');if(st){st.textContent='';st.className='ia-status';}
+}
+
+function iaGarbituResaltado(){
+  document.querySelectorAll('.ai-filled').forEach(el=>el.classList.remove('ai-filled'));
+}
+
+function iaMarcarCampo(el){
+  if(!el)return;
+  el.classList.add('ai-filled');
+  const remove=()=>{el.classList.remove('ai-filled');el.removeEventListener('focus',remove);el.removeEventListener('input',remove);el.removeEventListener('change',remove);};
+  el.addEventListener('focus',remove);el.addEventListener('input',remove);el.addEventListener('change',remove);
+}
+
+function iaExtraerJSON(s){
+  // Strip code fences if present
+  s=s.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+  // Try direct parse
+  try{return JSON.parse(s);}catch(e){}
+  // Find first balanced { ... } block
+  const start=s.indexOf('{');if(start<0)throw new Error('Ez da JSON aurkitu');
+  let depth=0,end=-1;
+  for(let i=start;i<s.length;i++){
+    if(s[i]==='{')depth++;
+    else if(s[i]==='}'){depth--;if(depth===0){end=i;break;}}
+  }
+  if(end<0)throw new Error('JSON osatu gabea');
+  return JSON.parse(s.slice(start,end+1));
+}
+
+function iaCoaccionarParticipantes(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number')return v;
+  const m=String(v).match(/\d+/);return m?parseInt(m[0]):null;
+}
+
+function iaNormalizarHora(v){
+  if(!v)return null;
+  const m=String(v).match(/^(\d{1,2}):?(\d{2})?/);if(!m)return null;
+  const h=parseInt(m[1]);const min=m[2]?parseInt(m[2]):0;
+  if(h>23||min>59)return null;
+  return String(h).padStart(2,'0')+':'+String(min).padStart(2,'0');
+}
+
+function iaNormalizarFecha(v){
+  if(!v)return null;
+  const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[0]:null;
+}
+
+async function iaBeteEskaera(){
+  const txt=(document.getElementById('ia-eskaera-txt').value||'').trim();
+  const status=document.getElementById('ia-status');
+  const btn=document.getElementById('ia-btn');
+  if(!txt){status.textContent='⚠️ Itsatsi eskaeraren testua lehenik';status.className='ia-status err';return;}
+  status.textContent='⏳ Aztertzen...';status.className='ia-status';
+  btn.disabled=true;
+  const hoy=new Date().toISOString().split('T')[0];
+  const sysPrompt=`Eres un asistente que extrae información estructurada de solicitudes de eventos para Durango Kirolak (servicio municipal de deportes en Durango, Bizkaia).
+
+Hoy es ${hoy}. Si el texto menciona fechas relativas (mañana, este sábado, la semana que viene...) calcúlalas tomando esta fecha como referencia.
+
+Recibirás el texto de un email o mensaje en castellano, euskera o ambos. Devuelve SOLO un objeto JSON válido con los campos siguientes. Si un campo no se puede deducir del texto, usa null. NO inventes datos.
+
+Esquema:
+{
+  "nombre": string|null,
+  "antolatzailea": string|null,
+  "tipo": string|null,
+  "instalacion": string|null,
+  "fecha": string|null,
+  "fechaFin": string|null,
+  "horaIni": string|null,
+  "horaFin": string|null,
+  "participantes": number|null,
+  "tasa": string|null,
+  "besteak": string|null,
+  "idioma": "eu"|"es",
+  "notas": string|null
+}
+
+Reglas de cada campo:
+- "tipo": uno EXACTO de: ${IA_TIPOS.join(', ')}
+- "instalacion": uno EXACTO de: ${IA_INSTALACIONES.map(i=>'"'+i+'"').join(', ')}. Respeta paréntesis y mayúsculas. Si no estás seguro, null.
+- "fecha" y "fechaFin": formato YYYY-MM-DD
+- "horaIni" y "horaFin": formato HH:MM (24h)
+- "idioma": idioma en que está escrita la solicitud (eu=euskera, es=castellano). Si está en ambos, elige el dominante.
+- "participantes": número entero. Si pone "60 personas" devuelve 60.
+- "tasa": texto libre tal y como aparece (ej. "doan", "5€/persona", "0€"). Si no se menciona, null.
+- "besteak": materiales/peticiones especiales (sillas, mesas, megafonía, conos, etc.) en frase corta.
+- "notas": información extra relevante para uso interno que no encaja en otro campo.
+
+Clubes recurrentes (reconocer aunque vengan mal escritos): Cultural Durango, Durango Rugby, Ezkurdi KT, Fair Play Padel, Ibaizabal Eskubaloia, Mendibeltz, Mugarra TT, Sasikoa, Tabira Igeriketa, Tabirako Baqué, Uztai Taldea, CT Landako, Padelzaleak, Alpino Tabira, Durango Xake, Bizkaipilota, Sapuherri BT, Arkulariak, SOS Rescue Club, ROWK Pelota, Club Tabira Natación.
+
+Mejor null que inventar. Responde SOLO con el JSON, sin texto adicional, sin markdown, sin fences.`;
+  try{
+    const r=await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1024,
+        system:sysPrompt,
+        messages:[{role:'user',content:txt}]
+      })
+    });
+    const data=await r.json().catch(()=>null);
+    if(!r.ok){
+      const msg=(data&&data.error&&(data.error.message||data.error))||('HTTP '+r.status);
+      throw new Error(typeof msg==='string'?msg:JSON.stringify(msg));
+    }
+    if(!data||!data.content||!data.content[0]||!data.content[0].text){
+      throw new Error('Erantzun hutsa edo formatu okerra');
+    }
+    const datos=iaExtraerJSON(data.content[0].text);
+    iaAplicarDatos(datos);
+    status.textContent='✅ Eginda. Berdez markatutako eremuak berrikusi mesedez.';status.className='ia-status ok';
+  }catch(e){
+    console.error('IA error:',e);
+    status.textContent='❌ Errorea: '+(e.message||'ezezaguna');status.className='ia-status err';
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function iaAplicarDatos(d){
+  if(!d||typeof d!=='object')return;
+  // Limpia el resaltado anterior por si ya se había rellenado
+  iaGarbituResaltado();
+  // Texto simple
+  const setVal=(id,val)=>{
+    if(val==null||val==='')return;
+    const el=document.getElementById(id);if(!el)return;
+    el.value=val;iaMarcarCampo(el);
+  };
+  setVal('f-nombre',d.nombre);
+  setVal('f-antolatzailea',d.antolatzailea);
+  setVal('f-besteak',d.besteak);
+  setVal('f-notas-new',d.notas);
+  setVal('f-tasa',d.tasa);
+  // Fechas y horas (validadas)
+  setVal('f-fecha',iaNormalizarFecha(d.fecha));
+  setVal('f-fecha-fin',iaNormalizarFecha(d.fechaFin));
+  setVal('f-hora-ini',iaNormalizarHora(d.horaIni));
+  setVal('f-hora-fin',iaNormalizarHora(d.horaFin));
+  // Participantes (coerción a número)
+  const p=iaCoaccionarParticipantes(d.participantes);
+  if(p!=null){const el=document.getElementById('f-partic');if(el){el.value=p;iaMarcarCampo(el);}}
+  // Selects: solo aplican si el valor existe en las opciones
+  if(d.tipo&&IA_TIPOS.includes(d.tipo)){
+    const el=document.getElementById('f-tipo');el.value=d.tipo;iaMarcarCampo(el);
+  }
+  if(d.instalacion&&IA_INSTALACIONES.includes(d.instalacion)){
+    const el=document.getElementById('f-inst');el.value=d.instalacion;iaMarcarCampo(el);
+  }
+  if(d.idioma==='eu'||d.idioma==='es'){
+    const el=document.getElementById('f-idioma');el.value=d.idioma;iaMarcarCampo(el);
+  }
+  // Si llegó antolatzailea, verifica autocompletado para ver si ya existe
+  if(d.antolatzailea){
+    const el=document.getElementById('f-antolatzailea');
+    if(typeof acSearch==='function')try{acSearch(el.value);}catch(e){}
+  }
+}
+
 function abrirModalBerria(){
   modoEdicion=false;editId=null;
   document.getElementById('modal-new-title').textContent='+ Ekitaldi berria';
@@ -1231,6 +1420,11 @@ function abrirModalBerria(){
   document.getElementById('f-tipo').value='';document.getElementById('f-inst').value='';
   document.getElementById('f-idioma').value='eu';document.getElementById('f-plazo').value='15';
   document.getElementById('f-ant-oharra').style.display='none';
+  // Reset IA box
+  const iaBox=document.getElementById('ia-eskaera-box');if(iaBox)iaBox.style.display='block';
+  const iaTxt=document.getElementById('ia-eskaera-txt');if(iaTxt)iaTxt.value='';
+  const iaStatus=document.getElementById('ia-status');if(iaStatus){iaStatus.textContent='';iaStatus.className='ia-status';}
+  iaGarbituResaltado();
   abrirModal('modal-new');
 }
 
@@ -1239,6 +1433,9 @@ function editatuEkitaldia(){
   const e=ekEA;
   modoEdicion=true;editId=e.id;
   document.getElementById('modal-new-title').textContent='Editatu: '+e.nombre;
+  // Hide IA box in edit mode (it would overwrite saved data)
+  const iaBox=document.getElementById('ia-eskaera-box');if(iaBox)iaBox.style.display='none';
+  iaGarbituResaltado();
   renderReqList();
   // Fill all fields with current event data
   document.getElementById('f-nombre').value=e.nombre||'';
