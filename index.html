@@ -451,16 +451,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
     <div class="detail-col-full">
       <div class="section-card">
         <div class="section-title">✉️ Erantzuna eskatzaileari</div>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div id="erantzun-buttons" style="display:flex;gap:8px;margin-bottom:10px">
           <button class="btn btn-secondary btn-sm" onclick="sortuErantzuna('eu')">🇪🇺 Euskeraz</button>
           <button class="btn btn-secondary btn-sm" onclick="sortuErantzuna('es')">🇪🇸 Gaztelaniaz</button>
         </div>
+        <div id="erantzun-jasoa-info" style="display:none;background:#e3f2fd;border-left:3px solid #1565c0;padding:10px 14px;border-radius:0 4px 4px 0;font-size:13px;color:#0d3d6b;margin-bottom:10px">
+          ℹ️ Egoera <strong>Jasoa</strong>n ez da emailik bidaltzen. Eskatzaileak jaso du jada formularioaren acuse automatikoa. Egoera <strong>Tramitatzen</strong>era aldatu erantzuna sortzeko.
+          <br><br>
+          <em style="color:#444">En estado <strong>Jasoa</strong> no se envía email. El solicitante ya recibió acuse automático del formulario. Cambia el estado a <strong>Tramitatzen</strong> para generar la respuesta.</em>
+        </div>
         <div id="erantzun-box" style="display:none">
           <textarea class="respuesta-textarea" id="erantzun-text" rows="20"></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="btn btn-primary btn-sm" onclick="kopiatu('erantzun-text',this)">📋 Kopiatu</button>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary btn-sm" onclick="kopiatuErantzuna(this)">📋 Kopiatu</button>
             <button class="btn btn-secondary btn-sm" onclick="gordaErantzuna(this)">💾 Gorde aldaketak</button>
             <button class="btn btn-secondary btn-sm" onclick="document.getElementById('erantzun-box').style.display='none'">✕</button>
+            <span id="kopiatu-aviso" style="display:none;background:#fff3cd;border:1px solid #ffd966;color:#7a5b00;padding:6px 12px;border-radius:4px;font-size:12px;font-weight:500">⚠️ Gogoratu beste mezu bat bidaltzea autobabes plana eta aseguruaren plantillarekin / Recuerda enviar otro correo con plan autoprotección + plantilla seguro</span>
           </div>
         </div>
       </div>
@@ -725,6 +731,7 @@ let ekitaldiak=[],antolatzaileak=[],ekEA=null;
 let modoEdicion=false,editId=null;
 let vistaActual='denak',instFiltro=null,filtroActual='denak',bilaketa='';
 let norPendiente=null,norHautatua=null,calDate=new Date();
+let kopiatuAvisoTimer=null;
 
 function loading(on){document.getElementById('loading-bar').style.display=on?'block':'none';}
 
@@ -881,6 +888,18 @@ function renderDetaila(){
   renderChecklist();renderTimeline();renderLog();
   document.getElementById('erantzun-box').style.display='none';
   document.getElementById('komunikazio-box').style.display='none';
+  // Toggle response buttons depending on state
+  const ebtns=document.getElementById('erantzun-buttons');
+  const einfo=document.getElementById('erantzun-jasoa-info');
+  if(e.estado==='jasoa'){
+    if(ebtns)ebtns.style.display='none';
+    if(einfo)einfo.style.display='block';
+  }else{
+    if(ebtns)ebtns.style.display='flex';
+    if(einfo)einfo.style.display='none';
+  }
+  const av=document.getElementById('kopiatu-aviso');if(av)av.style.display='none';
+  if(kopiatuAvisoTimer){clearTimeout(kopiatuAvisoTimer);kopiatuAvisoTimer=null;}
   // Hide kontsulta for baimenduta/ukatua
   const btnK=document.getElementById('btn-kontsulta');
   if(btnK)btnK.style.display=(e.estado==='baimenduta'||e.estado==='ukatua')?'none':'inline-flex';
@@ -1097,23 +1116,6 @@ function sortuErantzuna(lang){
   if(lang==='eu'){
     if(e.estado==='ukatua'){
       txt='Egun on,\n\n"'+e.nombre+'" ekitaldirako eskaerari dagokionez, ezin dugu onartu:\n\nArrazoia: '+(e.motivoUkapen||'--')+'\n\nBeste aukera batzuk aztertzeko, jarri gurekin harremanetan.\n\nAgur bat,\nDurango Kirolak';
-    }else if(e.estado==='jasoa'){
-      txt='Egun on,\n\nJaso dugu zure eskaera "'+e.nombre+'" ekitaldirako Durango Kirolaken instalazioak erabiltzeko.\n\n';
-      if(e.expediente)txt+='Espediente zenbakia: '+e.expediente+'\n\n';
-      txt+='*** GARRANTZITSUA -- IRAKURRI ARRETAZ ***\n\n';
-      txt+='Komunikazio hau ESKAERA TRAMITATZEKO da, EZ baimena emateko.\n\n';
-      txt+='Ekitaldia EZIN DA EGIN gure idatzizko BAIMENA jaso arte. Baimena emateko, hiru baldintza bete behar dira:\n';
-      txt+='  1. Eskatutako dokumentazio guztia entregatzea epe barruan.\n';
-      txt+='  2. Instalazioaren erabilgarritasuna baieztatzea.\n';
-      txt+='  3. Durango Kirolaken berariazko ONARPENA jasotzea.\n\n';
-      txt+='Hauetako baldintzaren bat betetzen ez bada, ekitaldia ezin izango da egin Durango Kirolaken instalazioetan.\n\n';
-      txt+='Eskaeraren xehetasunak:\n';
-      txt+='  -- Ekitaldia: '+e.nombre+'\n';
-      txt+='  -- Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+'\n';
-      txt+='  -- Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
-      txt+='  -- Instalazioa: '+(e.instalacion||'--')+'\n';
-      txt+='  -- Antolatzailea: '+(e.antolatzailea||'--')+'\n\n';
-      txt+='Bidaliko dizugu erantzun zehatza laster, dokumentazio eskakizunekin.\n\nGalderarik baduzu: '+ADMIN+'\n\nEskerrik asko,\nDurango Kirolak';
     }else if(e.estado==='baimenduta'&&docOk){
       txt='Egun on,\n\n*** ZURE EKITALDIA BAIMENDUTA DAGO ***\n\n';
       if(e.expediente)txt+='Espedientea: '+e.expediente+'\n';
@@ -1126,43 +1128,38 @@ function sortuErantzuna(lang){
       txt+=ZEH_EU+'\n\n';
       txt+='Aldaketarik edo ezeztatzerik bada, jakinarazi ahalik eta azkarren mesedez: '+ADMIN+'\n\nEskerrik asko zure lankidetzagatik.\nDurango Kirolak';
     }else{
-      // Tramitatzen, edo Baimenduta dokumentazio osoa gabe
+      // Tramitatzen (edo Baimenduta dokumentazio osoa gabe) — mezu osoa
       txt='Egun on,\n\nZure eskaera "'+e.nombre+'" ekitaldirako tramitatzen ari da.\n';
       if(e.expediente)txt+='Espedientea: '+e.expediente+'\n';
-      txt+='\n*** EKITALDIA EZ DAGO BAIMENDUTA OINDIO ***\n\n';
-      txt+='Baimena lortzeko, dokumentazio hau entregatu behar duzu '+(e.plazoAntes||15)+' egun lehenago, hots, '+dStr+' baino lehen, helbide honetara:\n'+ADMIN+'\n\n';
+      txt+='\n*** GARRANTZITSUA -- IRAKURRI ARRETAZ ***\n\n';
+      txt+='Komunikazio hau ESKAERA TRAMITATZEKO da, EZ baimena emateko.\n\n';
+      txt+='Ekitaldia EZIN DA EGIN gure idatzizko BAIMENA jaso arte. Baimena emateko, hiru baldintza bete behar dira:\n';
+      txt+='  1. Eskatutako dokumentazio guztia entregatzea epe barruan.\n';
+      txt+='  2. Instalazioaren erabilgarritasuna baieztatzea.\n';
+      txt+='  3. Durango Kirolaken berariazko ONARPENA jasotzea.\n\n';
+      txt+='Hauetako baldintzaren bat betetzen ez bada, ekitaldia ezin izango da egin Durango Kirolaken instalazioetan.\n\n';
       txt+='Ekitaldiaren xehetasunak:\n';
+      txt+='  -- Ekitaldia: '+e.nombre+'\n';
       txt+='  -- Data: '+fmtF(e.fecha,'eu')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'eu'):'')+'\n';
       txt+='  -- Ordutegia: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
-      txt+='  -- Instalazioa: '+(e.instalacion||'--')+(e.besteak?'\n  -- Besteak: '+e.besteak:'')+tasaTxt+'\n\n';
-      txt+='ZAIN DAGOEN DOKUMENTAZIOA:\n';
+      txt+='  -- Instalazioa: '+(e.instalacion||'--')+'\n';
+      txt+='  -- Antolatzailea: '+(e.antolatzailea||'--')+(e.besteak?'\n  -- Besteak: '+e.besteak:'')+tasaTxt+'\n\n';
+      txt+='ZAIN DAGOEN DOKUMENTAZIOA\n';
+      txt+='Mesedez, bidali dokumentazio hau '+(e.plazoAntes||15)+' egun lehenago ('+dStr+' baino lehen) helbide honetara: '+ADMIN+'\n\n';
       txt+=pend.length?pend.map(p=>'  [ ] '+p).join('\n'):'  (Dokumentazio guztia jasota dago)';
-      if(extras.length)txt+='\n\nINFORMAZIO OSAGARRIA:\n'+extras.map(p=>'  -- '+p).join('\n');
-      txt+='\n\nDokumentazio osoa jaso eta erabilgarritasuna baieztatu ondoren, BAIMEN OFIZIALA bidaliko dizugu. Une horretara arte ekitaldia ez dago baimenduta.\n\n';
-      txt+='Betebehar orokorrak:\n'+D_ITEMS_EU.map(d=>'  -- '+d).join('\n');
+      txt+='\n\nBESTE MEZU BATEAN BIDALIKO DIZKIZUGU:\n';
+      txt+='  -- Instalazioaren autobabes plana\n';
+      txt+='  -- Erantzukizun zibileko aseguruaren plantilla\n\n';
+      txt+='Mesedez, berretsi dokumentu horiek jaso dituzula mezu honi erantzunda.';
+      if(extras.length)txt+='\n\nINFORMAZIO OSAGARRIA\n'+extras.map(p=>'  -- '+p).join('\n');
+      txt+='\n\nBETEBEHAR OROKORRAK\n'+D_ITEMS_EU.map(d=>'  -- '+d).join('\n');
       txt+='\n\n'+ZEH_EU;
-      txt+='\n\nGalderarik baduzu, erantzun mezu honi.\n\nAdeitasunez,\nDurango Kirolak';
+      txt+='\n\nDokumentazio osoa jaso eta erabilgarritasuna baieztatu ondoren, BAIMEN OFIZIALA bidaliko dizugu. Une horretara arte ekitaldia ez dago baimenduta.\n\n';
+      txt+='Galderarik baduzu, erantzun mezu honi.\n\nAdeitasunez,\nDurango Kirolak';
     }
   }else{
     if(e.estado==='ukatua'){
       txt='Buenos días,\n\nEn relación con la solicitud para "'+e.nombre+'", lamentamos comunicarles que no podemos atender la petición:\n\nMotivo: '+(e.motivoUkapen||'--')+'\n\nPueden contactarnos para explorar otras alternativas.\n\nReciban un cordial saludo,\nDurango Kirolak';
-    }else if(e.estado==='jasoa'){
-      txt='Buenos días,\n\nHemos recibido su solicitud para el evento "'+e.nombre+'" en las instalaciones de Durango Kirolak.\n\n';
-      if(e.expediente)txt+='Nº de expediente: '+e.expediente+'\n\n';
-      txt+='*** IMPORTANTE -- LEER CON ATENCION ***\n\n';
-      txt+='Esta comunicación es para TRAMITAR la solicitud, NO supone autorización.\n\n';
-      txt+='El evento NO PUEDE REALIZARSE hasta recibir nuestra AUTORIZACION por escrito. Para autorizarlo, deben cumplirse tres condiciones:\n';
-      txt+='  1. Entregar toda la documentación solicitada en plazo.\n';
-      txt+='  2. Confirmar la disponibilidad de la instalación.\n';
-      txt+='  3. Recibir la APROBACION expresa de Durango Kirolak.\n\n';
-      txt+='Si no se cumple alguna de estas condiciones, el evento no podrá realizarse en las instalaciones de Durango Kirolak.\n\n';
-      txt+='Datos de la solicitud:\n';
-      txt+='  -- Evento: '+e.nombre+'\n';
-      txt+='  -- Fecha: '+fmtF(e.fecha,'es')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'es'):'')+'\n';
-      txt+='  -- Horario: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
-      txt+='  -- Instalación: '+(e.instalacion||'--')+'\n';
-      txt+='  -- Organizador: '+(e.antolatzailea||'--')+'\n\n';
-      txt+='Les enviaremos respuesta detallada en breve, con los requisitos de documentación.\n\nConsultas: '+ADMIN+'\n\nGracias,\nDurango Kirolak';
     }else if(e.estado==='baimenduta'&&docOk){
       txt='Buenos días,\n\n*** SU EVENTO HA SIDO AUTORIZADO ***\n\n';
       if(e.expediente)txt+='Expediente: '+e.expediente+'\n';
@@ -1175,22 +1172,34 @@ function sortuErantzuna(lang){
       txt+=ZEH_ES+'\n\n';
       txt+='En caso de modificación o anulación, comunicarlo lo antes posible: '+ADMIN+'\n\nGracias por su colaboración.\nDurango Kirolak';
     }else{
-      // Tramitatzen, o Baimenduta sin documentación completa
-      txt='Buenos días,\n\nSu solicitud para el evento "'+e.nombre+'" se encuentra en trámite.\n';
+      // Tramitatzen (o Baimenduta sin documentación completa) — mensaje completo
+      txt='Buenos días,\n\nSu solicitud para "'+e.nombre+'" se encuentra en trámite.\n';
       if(e.expediente)txt+='Expediente: '+e.expediente+'\n';
-      txt+='\n*** EL EVENTO AUN NO ESTA AUTORIZADO ***\n\n';
-      txt+='Para obtener la autorización, deben entregar la siguiente documentación con '+(e.plazoAntes||15)+' días de antelación, es decir, antes del '+dStr+', en:\n'+ADMIN+'\n\n';
+      txt+='\n*** IMPORTANTE -- LEER CON ATENCION ***\n\n';
+      txt+='Esta comunicación es para TRAMITAR la solicitud, NO supone autorización.\n\n';
+      txt+='El evento NO PUEDE REALIZARSE hasta recibir nuestra AUTORIZACION por escrito. Para autorizarlo, deben cumplirse tres condiciones:\n';
+      txt+='  1. Entregar toda la documentación solicitada en plazo.\n';
+      txt+='  2. Confirmar la disponibilidad de la instalación.\n';
+      txt+='  3. Recibir la APROBACION expresa de Durango Kirolak.\n\n';
+      txt+='Si no se cumple alguna de estas condiciones, el evento no podrá realizarse en las instalaciones de Durango Kirolak.\n\n';
       txt+='Datos del evento:\n';
+      txt+='  -- Evento: '+e.nombre+'\n';
       txt+='  -- Fecha: '+fmtF(e.fecha,'es')+(e.fechaFin?' -> '+fmtF(e.fechaFin,'es'):'')+'\n';
       txt+='  -- Horario: '+(e.horaIni||'--')+' - '+(e.horaFin||'--')+'\n';
-      txt+='  -- Instalación: '+(e.instalacion||'--')+(e.besteak?'\n  -- Otros: '+e.besteak:'')+tasaTxt+'\n\n';
-      txt+='DOCUMENTACION PENDIENTE:\n';
+      txt+='  -- Instalación: '+(e.instalacion||'--')+'\n';
+      txt+='  -- Organizador: '+(e.antolatzailea||'--')+(e.besteak?'\n  -- Otros: '+e.besteak:'')+tasaTxt+'\n\n';
+      txt+='DOCUMENTACION PENDIENTE\n';
+      txt+='Por favor, envíen la siguiente documentación con '+(e.plazoAntes||15)+' días de antelación (antes del '+dStr+') a: '+ADMIN+'\n\n';
       txt+=pend.length?pend.map(p=>'  [ ] '+p).join('\n'):'  (Toda la documentación recibida)';
-      if(extras.length)txt+='\n\nINFORMACION ADICIONAL:\n'+extras.map(p=>'  -- '+p).join('\n');
-      txt+='\n\nUna vez recibida toda la documentación y confirmada la disponibilidad, les enviaremos la AUTORIZACION OFICIAL. Hasta ese momento el evento no está autorizado.\n\n';
-      txt+='Obligaciones generales:\n'+D_ITEMS_ES.map(d=>'  -- '+d).join('\n');
+      txt+='\n\nEN UN CORREO APARTE LES ENVIAMOS:\n';
+      txt+='  -- Plan de autoprotección de la instalación\n';
+      txt+='  -- Plantilla de seguro de responsabilidad civil\n\n';
+      txt+='Por favor, confirmen la recepción de esos documentos respondiendo a este mensaje.';
+      if(extras.length)txt+='\n\nINFORMACION ADICIONAL\n'+extras.map(p=>'  -- '+p).join('\n');
+      txt+='\n\nOBLIGACIONES GENERALES\n'+D_ITEMS_ES.map(d=>'  -- '+d).join('\n');
       txt+='\n\n'+ZEH_ES;
-      txt+='\n\nSi tienen dudas, respondan a este mensaje.\n\nReciban un cordial saludo,\nDurango Kirolak';
+      txt+='\n\nUna vez recibida toda la documentación y confirmada la disponibilidad, les enviaremos la AUTORIZACION OFICIAL. Hasta ese momento el evento no está autorizado.\n\n';
+      txt+='Si tienen dudas, respondan a este mensaje.\n\nReciban un cordial saludo,\nDurango Kirolak';
     }
   }
   const el=document.getElementById('erantzun-text');
@@ -1635,6 +1644,20 @@ function itxiModal(id){document.getElementById(id).classList.remove('open');}
 function toggleInst(){
   document.getElementById('inst-toggle').classList.toggle('open');
   document.getElementById('inst-list').classList.toggle('open');
+}
+
+// Copia la respuesta + muestra recordatorio si toca (solo en Tramitatzen)
+async function kopiatuErantzuna(btn){
+  await kopiatu('erantzun-text',btn);
+  const av=document.getElementById('kopiatu-aviso');
+  if(!av||!ekEA)return;
+  if(kopiatuAvisoTimer){clearTimeout(kopiatuAvisoTimer);kopiatuAvisoTimer=null;}
+  if(ekEA.estado==='tramitatzen'){
+    av.style.display='inline-block';
+    kopiatuAvisoTimer=setTimeout(()=>{av.style.display='none';kopiatuAvisoTimer=null;},6000);
+  }else{
+    av.style.display='none';
+  }
 }
 
 // Copiar al portapapeles (con fallback para navegadores antiguos o sin permiso)
