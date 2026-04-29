@@ -92,7 +92,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
 .b-jasoa{background:#e3f2fd;color:#1565c0}
 .b-tramitatzen{background:#fff3e0;color:#e65100}
 .b-baimenduta{background:#e8f5e9;color:#2e7d32}
+.b-itxieran{background:#ede7f6;color:#5e35b1}
+.b-bukatuta{background:#eceff1;color:#455a64}
 .b-ukatua{background:#ffebee;color:#c62828}
+.cierre-step{background:#fff;border:1px solid #d4c5f5;border-radius:6px;padding:14px 16px;margin-bottom:10px}
+.cierre-step.done{background:#f3efff;border-color:#5e35b1}
+.cierre-step-title{font-weight:600;font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.cierre-step-fields{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.cierre-step-fields label{font-size:11px;color:var(--grisa-med);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.cierre-step-fields input,.cierre-step-fields select,.cierre-step-fields textarea{padding:6px 9px;border:1px solid var(--muga);border-radius:4px;font-family:'DM Sans',sans-serif;font-size:13px}
+.cierre-step-fields textarea{resize:vertical;min-height:50px}
+.cierre-step .check-row{display:flex;align-items:center;gap:8px}
+.cierre-step input[type="checkbox"]{width:16px;height:16px;accent-color:#5e35b1;cursor:pointer}
+.cierre-final-box{background:#e8f5e9;border:1px solid #2e7d32;border-radius:6px;padding:14px 16px;margin-top:14px;text-align:center}
+.cierre-final-box.locked{background:#f5f5f5;border-color:#ccc;color:#777}
+.btn-cierre-final{background:#2e7d32;color:#fff;font-weight:600;padding:10px 20px;border-radius:5px;border:none;cursor:pointer;font-size:14px}
+.btn-cierre-final:hover{background:#1b5e20}
+.btn-cierre-final:disabled{background:#bbb;cursor:not-allowed}
 .plazo-red{font-size:11px;font-weight:600;color:var(--gorria)}
 .plazo-orange{font-size:11px;font-weight:600;color:var(--laranja)}
 .plazo-ok{font-size:11px;color:var(--grisa-med)}
@@ -286,6 +302,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
       <button class="filter-btn" onclick="setFilter('jasoa',this)">Jasoa</button>
       <button class="filter-btn" onclick="setFilter('tramitatzen',this)">Tramitatzen</button>
       <button class="filter-btn" onclick="setFilter('baimenduta',this)">Baimenduta</button>
+      <button class="filter-btn" onclick="setFilter('itxieran',this)">Itxieran</button>
+      <button class="filter-btn" onclick="setFilter('bukatuta',this)">Bukatuta</button>
       <button class="filter-btn" onclick="setFilter('ukatua',this)">Ukatua</button>
       <div class="search-box"><input id="search-input" placeholder="Bilatu…" oninput="bilatu(this.value)"></div>
     </div>
@@ -340,6 +358,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
           <option value="jasoa">Jasoa</option>
           <option value="tramitatzen">Tramitatzen</option>
           <option value="baimenduta">Baimenduta</option>
+          <option value="itxieran">Itxieran</option>
+          <option value="bukatuta">Bukatuta</option>
           <option value="ukatua">Ukatua</option>
         </select>
       </div>
@@ -469,6 +489,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
             <span id="kopiatu-aviso" style="display:none;background:#fff3cd;border:1px solid #ffd966;color:#7a5b00;padding:6px 12px;border-radius:4px;font-size:12px;font-weight:500">⚠️ Gogoratu beste mezu bat bidaltzea autobabes plana eta aseguruaren plantillarekin / Recuerda enviar otro correo con plan autoprotección + plantilla seguro</span>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="detail-col-full" id="cierre-panel" style="display:none">
+      <div class="section-card" style="background:#f5f3fc;border-color:#d4c5f5">
+        <div class="section-title" style="color:#5e35b1">📋 Itxiera prozesua</div>
+        <div id="cierre-content"></div>
       </div>
     </div>
 
@@ -665,8 +692,8 @@ async function sbF(path,opts={}){
   if(!r.ok){const e=await r.text();throw new Error('SB '+r.status+': '+e);}
   return r.status===204?null:r.json().catch(()=>null);
 }
-function fromDB(r){return{id:r.id,expediente:r.expediente||'',nombre:r.nombre,tipo:r.tipo||'',instalacion:r.instalacion||'',fecha:r.fecha||'',fechaFin:r.fecha_fin||'',horaIni:r.hora_ini||'',horaFin:r.hora_fin||'',antolatzailea:r.antolatzailea||'',idioma:r.idioma||'eu',participantes:r.participantes||'',tasa:r.tasa||'',besteak:r.besteak||'',estado:r.estado||'jasoa',plazoAntes:r.plazo_antes||15,checklist:r.checklist||[],checklistC:r.checklist_c||[],notas:r.notas||'',log:r.log||[],motivoUkapen:r.motivo_ukapen||'',erantzunGordea:r.erantzun_gordea||'',creado:r.creado||''};}
-function toDB(e){return{id:e.id,expediente:e.expediente,nombre:e.nombre,tipo:e.tipo,instalacion:e.instalacion,fecha:e.fecha,fecha_fin:e.fechaFin||null,hora_ini:e.horaIni,hora_fin:e.horaFin,antolatzailea:e.antolatzailea,idioma:e.idioma,participantes:e.participantes,tasa:e.tasa||'',besteak:e.besteak,estado:e.estado,plazo_antes:e.plazoAntes,checklist:e.checklist,checklist_c:e.checklistC||[],notas:e.notas,log:e.log,motivo_ukapen:e.motivoUkapen,erantzun_gordea:e.erantzunGordea||'',creado:e.creado};}
+function fromDB(r){return{id:r.id,expediente:r.expediente||'',nombre:r.nombre,tipo:r.tipo||'',instalacion:r.instalacion||'',fecha:r.fecha||'',fechaFin:r.fecha_fin||'',horaIni:r.hora_ini||'',horaFin:r.hora_fin||'',antolatzailea:r.antolatzailea||'',idioma:r.idioma||'eu',participantes:r.participantes||'',tasa:r.tasa||'',besteak:r.besteak||'',estado:r.estado||'jasoa',plazoAntes:r.plazo_antes||15,checklist:r.checklist||[],checklistC:r.checklist_c||[],notas:r.notas||'',log:r.log||[],motivoUkapen:r.motivo_ukapen||'',erantzunGordea:r.erantzun_gordea||'',cierre:r.cierre||{},creado:r.creado||''};}
+function toDB(e){return{id:e.id,expediente:e.expediente,nombre:e.nombre,tipo:e.tipo,instalacion:e.instalacion,fecha:e.fecha,fecha_fin:e.fechaFin||null,hora_ini:e.horaIni,hora_fin:e.horaFin,antolatzailea:e.antolatzailea,idioma:e.idioma,participantes:e.participantes,tasa:e.tasa||'',besteak:e.besteak,estado:e.estado,plazo_antes:e.plazoAntes,checklist:e.checklist,checklist_c:e.checklistC||[],notas:e.notas,log:e.log,motivo_ukapen:e.motivoUkapen,erantzun_gordea:e.erantzunGordea||'',cierre:e.cierre||{},creado:e.creado};}
 function fromDBA(r){return{id:r.id,izena:r.izena,oharra:r.oharra||'',creado:r.creado};}
 
 async function loadAll(){
@@ -676,6 +703,27 @@ async function loadAll(){
 async function saveEv(e){await sbF('dk_ekitaldiak',{method:'POST',prefer:'resolution=merge-duplicates',body:toDB(e)});}
 async function delEv(id){await sbF('dk_ekitaldiak?id=eq.'+id,{method:'DELETE'});}
 async function saveAnt(a){await sbF('dk_antolatzaileak',{method:'POST',prefer:'resolution=merge-duplicates',body:{id:a.id,izena:a.izena,oharra:a.oharra||'',creado:a.creado}});}
+
+// Auto-paso a "itxieran" cuando un evento Baimenduta ha pasado de fecha
+async function autoPasoItxieran(){
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const ayer=new Date(hoy);ayer.setDate(ayer.getDate()-1);
+  const ayerStr=ayer.toISOString().split('T')[0];
+  const candidatos=ekitaldiak.filter(e=>{
+    if(e.estado!=='baimenduta')return false;
+    const fechaFin=e.fechaFin||e.fecha;
+    return fechaFin&&fechaFin<=ayerStr;
+  });
+  if(!candidatos.length)return 0;
+  for(const e of candidatos){
+    e.estado='itxieran';
+    if(!e.log)e.log=[];
+    e.log.push({fecha:new Date().toISOString().split('T')[0],nor:'AUTO',accion:'Egoera: Baimenduta → Itxieran (data igarota)'});
+    if(!e.cierre)e.cierre={};
+    try{await saveEv(e);}catch(err){console.warn('Auto-paso save fail:',e.id,err);}
+  }
+  return candidatos.length;
+}
 
 // Checklist A (always, doc required)
 const CK_A=[
@@ -724,6 +772,8 @@ const ESTADOS=[
   {id:'jasoa',label:'Jasoa',cls:'b-jasoa',bg:'#e3f2fd',color:'#1565c0'},
   {id:'tramitatzen',label:'Tramitatzen',cls:'b-tramitatzen',bg:'#fff3e0',color:'#e65100'},
   {id:'baimenduta',label:'Baimenduta',cls:'b-baimenduta',bg:'#e8f5e9',color:'#2e7d32'},
+  {id:'itxieran',label:'Itxieran',cls:'b-itxieran',bg:'#ede7f6',color:'#5e35b1'},
+  {id:'bukatuta',label:'Bukatuta',cls:'b-bukatuta',bg:'#eceff1',color:'#455a64'},
   {id:'ukatua',label:'Ukatua',cls:'b-ukatua',bg:'#ffebee',color:'#c62828'},
 ];
 
@@ -760,7 +810,7 @@ function estadoInfo(id){return ESTADOS.find(s=>s.id===id)||{label:'—',cls:'',b
 function getDefA(id){return CK_A.find(c=>c.id===id);}
 function getDefB(id){return CK_B.find(c=>c.id===id);}
 function pendAll(e){return(e.checklist||[]).filter(c=>!c.hecho);}
-function isActivo(e){return e.estado!=='ukatua';}
+function isActivo(e){return e.estado!=='ukatua'&&e.estado!=='bukatuta';}
 function isFutur(e){const d=egunakFalta(e.fecha);return d===null||d>=0;}
 function accentC(e){if(e.estado==='ukatua')return'#e53935';const d=egunakFalta(e.fecha);if(d!==null&&d<=7)return'#e53935';if(d!==null&&d<=15)return'#f57c00';if(e.estado==='baimenduta')return'#7DC241';if(e.estado==='jasoa')return'#1565c0';return'#f57c00';}
 
@@ -774,16 +824,24 @@ function renderStats(){
 }
 function renderSidebar(){
   const act=ekitaldiak.filter(e=>isActivo(e)&&isFutur(e));
+  const itxieranCount=ekitaldiak.filter(e=>e.estado==='itxieran').length;
   const adi=act.filter(e=>{const d=egunakFalta(e.fecha);return(d!==null&&d<=7)||pendAll(e).length>0;});
-  document.getElementById('sb-denak').textContent=act.length;
-  document.getElementById('sb-adi').textContent=adi.length;
+  document.getElementById('sb-denak').textContent=act.length+itxieranCount;
+  document.getElementById('sb-adi').textContent=adi.length+itxieranCount;
 }
 function renderAdi(){
   const panel=document.getElementById('adi-panel');
-  const items=ekitaldiak.filter(e=>{if(!isActivo(e)||!isFutur(e))return false;const d=egunakFalta(e.fecha);return(d!==null&&d<=7)||pendAll(e).length>0;}).slice(0,6);
-  if(!items.length){panel.classList.remove('visible');return;}
+  // Eventos en proceso de cierre — primero, prioritarios
+  const itxieranList=ekitaldiak.filter(e=>e.estado==='itxieran').slice(0,6);
+  // Eventos activos con plazo próximo o docs pendientes
+  const items=ekitaldiak.filter(e=>{if(!isActivo(e)||!isFutur(e))return false;if(e.estado==='itxieran')return false;const d=egunakFalta(e.fecha);return(d!==null&&d<=7)||pendAll(e).length>0;}).slice(0,6-itxieranList.length);
+  if(!itxieranList.length&&!items.length){panel.classList.remove('visible');return;}
   panel.classList.add('visible');
-  document.getElementById('adi-list').innerHTML=items.map(e=>{
+  const itxieranHtml=itxieranList.map(e=>{
+    const fechaStr=e.fecha?fmtF(e.fecha,'eu'):'--';
+    return '<div class="adi-item"><span><span class="adi-item-fecha" style="color:#5e35b1;font-weight:700">📋 ITXIERAN</span><strong>'+e.nombre+'</strong> — ekitaldia: '+fechaStr+'</span><button class="btn btn-xs btn-secondary" onclick="abrirDetaila('+e.id+')">Itxi</button></div>';
+  }).join('');
+  const itemsHtml=items.map(e=>{
     const d=egunakFalta(e.fecha);const p=pendAll(e).length;
     const fechaStr=e.fecha?fmtF(e.fecha,'eu'):'--';
     const urgent=(d!==null&&d<=7);
@@ -792,10 +850,11 @@ function renderAdi(){
     if(p>0)msg+=' — '+p+' dok. zain';
     return '<div class="adi-item"><span>'+msg+'</span><button class="btn btn-xs btn-secondary" onclick="abrirDetaila('+e.id+')">Ikusi</button></div>';
   }).join('');
+  document.getElementById('adi-list').innerHTML=itxieranHtml+itemsHtml;
 }
 function filteredList(){
   let list=[...ekitaldiak];
-  if(vistaActual==='historia')list=list.filter(e=>!isFutur(e)||e.estado==='ukatua');
+  if(vistaActual==='historia')list=list.filter(e=>e.estado==='bukatuta'||e.estado==='ukatua');
   else if(vistaActual==='adi')list=list.filter(e=>{const d=egunakFalta(e.fecha);return isActivo(e)&&((d!==null&&d<=7)||(pendAll(e).length>0&&d!==null&&d<=30));});
   else if(vistaActual==='tramitatzen')list=list.filter(e=>e.estado==='tramitatzen');
   else if(vistaActual==='baimenduta')list=list.filter(e=>e.estado==='baimenduta');
@@ -885,15 +944,17 @@ function renderDetaila(){
   if(ant&&ant.oharra){ob.innerHTML='<div class="oharra-box danger">⚠️ <strong>'+e.antolatzailea+'</strong> — '+ant.oharra+' <button class="btn btn-xs btn-secondary" style="margin-left:8px" onclick="editaOharra()">✏️ Editatu</button></div>';}
   else{ob.innerHTML='<div class="oharra-box">👤 <strong>'+(e.antolatzailea||'—')+'</strong> — Aurrekaririk ez. <button class="btn btn-xs btn-secondary" style="margin-left:8px" onclick="editaOharra()">⚠️ Oharra gehitu</button></div>';}
   document.getElementById('d-estado-sel').innerHTML=ESTADOS.map(s=>'<button class="estado-btn'+(e.estado===s.id?' sel':'')+' " style="background:'+s.bg+';color:'+s.color+'" data-sid="'+s.id+'" onclick="aldatuEgoera(this.dataset.sid)">'+s.label+'</button>').join('');
-  renderChecklist();renderTimeline();renderLog();
+  renderChecklist();renderTimeline();renderLog();renderCierre();
   document.getElementById('erantzun-box').style.display='none';
   document.getElementById('komunikazio-box').style.display='none';
   // Toggle response buttons depending on state
   const ebtns=document.getElementById('erantzun-buttons');
   const einfo=document.getElementById('erantzun-jasoa-info');
-  if(e.estado==='jasoa'){
+  if(e.estado==='jasoa'||e.estado==='itxieran'||e.estado==='bukatuta'){
     if(ebtns)ebtns.style.display='none';
-    if(einfo)einfo.style.display='block';
+    if(einfo){
+      einfo.style.display=(e.estado==='jasoa')?'block':'none';
+    }
   }else{
     if(ebtns)ebtns.style.display='flex';
     if(einfo)einfo.style.display='none';
@@ -902,7 +963,7 @@ function renderDetaila(){
   if(kopiatuAvisoTimer){clearTimeout(kopiatuAvisoTimer);kopiatuAvisoTimer=null;}
   // Hide kontsulta for baimenduta/ukatua
   const btnK=document.getElementById('btn-kontsulta');
-  if(btnK)btnK.style.display=(e.estado==='baimenduta'||e.estado==='ukatua')?'none':'inline-flex';
+  if(btnK)btnK.style.display=(e.estado==='baimenduta'||e.estado==='ukatua'||e.estado==='itxieran'||e.estado==='bukatuta')?'none':'inline-flex';
 }
 
 function renderChecklist(){
@@ -1015,6 +1076,11 @@ async function norConfirmatu(){
     try{await saveEv(ekEA);}catch(e){alert('⚠️ Gordatzeko errorea.');}
     finally{loading(false);}
     renderDetaila();renderStats();renderSidebar();renderAdi();
+  }else if(tipo==='cierre'){
+    loading(true);
+    try{await ejecutarCierreFinal(nor);renderStats();renderSidebar();renderAdi();}
+    catch(e){alert('⚠️ Gordatzeko errorea.');}
+    finally{loading(false);}
   }
 }
 
@@ -1646,6 +1712,131 @@ function toggleInst(){
   document.getElementById('inst-list').classList.toggle('open');
 }
 
+// === ITXIERA PROZESUA / Cierre del evento ===
+function renderCierre(){
+  const e=ekEA;
+  const panel=document.getElementById('cierre-panel');
+  if(!panel)return;
+  // Solo aparece si está en itxieran o bukatuta
+  if(e.estado!=='itxieran'&&e.estado!=='bukatuta'){
+    panel.style.display='none';
+    return;
+  }
+  panel.style.display='block';
+  const c=e.cierre||{};
+  const tieneFianza=(e.checklist||[]).some(it=>it.id==='fidantza'&&it.entregado);
+  const readonly=(e.estado==='bukatuta');
+  const dis=readonly?'disabled':'';
+
+  let html='';
+  // Cabecera
+  const fechaEvt=e.fechaFin||e.fecha;
+  html+='<div style="font-size:12px;color:var(--grisa-med);margin-bottom:14px;line-height:1.5">';
+  html+='Ekitaldia bukatu zen: <strong>'+(fechaEvt?fmtF(fechaEvt,'eu'):'--')+'</strong>';
+  if(readonly)html+='<br><strong style="color:#2e7d32">✅ Espedientea itxita</strong>';
+  html+='</div>';
+
+  // PASO 1 — Revisión instalación
+  const p1=c.paso1||{};const p1done=!!p1.done;
+  html+='<div class="cierre-step'+(p1done?' done':'')+'">';
+  html+='<div class="cierre-step-title"><input type="checkbox" '+(p1done?'checked':'')+' '+dis+' onchange="cierreToggle(\'paso1\',this.checked)"> Pauso 1 — Instalazioaren berrikuspena</div>';
+  if(p1done||!readonly){
+    html+='<div class="cierre-step-fields">';
+    html+='<div><label>Nork egin du</label><select '+dis+' onchange="cierreSet(\'paso1\',\'nork\',this.value)">';
+    ['','Teknikoa','Mantentzea','Administraria','Bestelakoa'].forEach(o=>{html+='<option value="'+o+'"'+(p1.nork===o?' selected':'')+'>'+(o||'-- Aukeratu --')+'</option>';});
+    html+='</select></div>';
+    html+='<div><label>Data</label><input type="date" '+dis+' value="'+(p1.data||'')+'" onchange="cierreSet(\'paso1\',\'data\',this.value)"></div>';
+    html+='<div><label>Emaitza</label><div style="display:flex;gap:14px;font-size:13px;font-weight:500">';
+    html+='<label style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--beltza);font-size:13px;display:flex;align-items:center;gap:5px"><input type="radio" name="p1res-'+e.id+'" '+dis+' '+(p1.resultado==='aldekoa'?'checked':'')+' onchange="cierreSet(\'paso1\',\'resultado\',\'aldekoa\')"> ✅ Aldekoa (todo OK)</label>';
+    html+='<label style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--beltza);font-size:13px;display:flex;align-items:center;gap:5px"><input type="radio" name="p1res-'+e.id+'" '+dis+' '+(p1.resultado==='aurkakoa'?'checked':'')+' onchange="cierreSet(\'paso1\',\'resultado\',\'aurkakoa\')"> ⚠️ Aurkakoa (arazoak)</label>';
+    html+='</div></div>';
+    html+='<div><label>Oharrak</label><textarea '+dis+' onchange="cierreSet(\'paso1\',\'oharrak\',this.value)" placeholder="Hizkuntza librean...">'+(p1.oharrak||'')+'</textarea></div>';
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // PASO 2 — Fianza (solo si tiene)
+  if(tieneFianza){
+    const p2=c.paso2||{};const p2done=!!p2.done;
+    html+='<div class="cierre-step'+(p2done?' done':'')+'">';
+    html+='<div class="cierre-step-title"><input type="checkbox" '+(p2done?'checked':'')+' '+dis+' onchange="cierreToggle(\'paso2\',this.checked)"> Pauso 2 — Fidantza</div>';
+    if(p2done||!readonly){
+      html+='<div class="cierre-step-fields">';
+      html+='<div><label>Egoera</label><select '+dis+' onchange="cierreSet(\'paso2\',\'egoera\',this.value)">';
+      [['','-- Aukeratu --'],['osorik','Itzulita osorik (devuelta íntegra)'],['atxikita','Atxikita (retenida)'],['erdizka','Erdizka itzulita (devuelta parcial)']].forEach(o=>{html+='<option value="'+o[0]+'"'+(p2.egoera===o[0]?' selected':'')+'>'+o[1]+'</option>';});
+      html+='</select></div>';
+      html+='<div><label>Oharrak</label><textarea '+dis+' onchange="cierreSet(\'paso2\',\'oharrak\',this.value)" placeholder="Importes, decretos, motivos...">'+(p2.oharrak||'')+'</textarea></div>';
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+
+  // PASO 3 — Archivado intranet (siempre)
+  const p3=c.paso3||{};const p3done=!!p3.done;
+  html+='<div class="cierre-step'+(p3done?' done':'')+'">';
+  html+='<div class="cierre-step-title"><input type="checkbox" '+(p3done?'checked':'')+' '+dis+' onchange="cierreToggle(\'paso3\',this.checked)"> Pauso '+(tieneFianza?'3':'2')+' — Espedientea intranet-en artxibatuta</div>';
+  if(p3done||!readonly){
+    html+='<div class="cierre-step-fields">';
+    html+='<div><label>Karpeta (aukerazkoa)</label><input type="text" '+dis+' value="'+(p3.karpeta||'')+'" onchange="cierreSet(\'paso3\',\'karpeta\',this.value)" placeholder="ej: solicitante / 2026 / Padelzaleak"></div>';
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // Cierre final
+  const stepsRequired=tieneFianza?['paso1','paso2','paso3']:['paso1','paso3'];
+  const allDone=stepsRequired.every(s=>(c[s]||{}).done);
+  if(!readonly){
+    html+='<div class="cierre-final-box'+(allDone?'':' locked')+'">';
+    if(allDone){
+      html+='<div style="margin-bottom:8px;font-size:12px">Pauso guztiak osatuta ✓</div>';
+      html+='<button class="btn-cierre-final" onclick="itxiBukatutaModal()">✅ Itxi expedientea</button>';
+    }else{
+      const faltan=stepsRequired.filter(s=>!(c[s]||{}).done).length;
+      html+='<div style="font-size:12px">Falta dira <strong>'+faltan+'</strong> pauso osatzeko</div>';
+    }
+    html+='</div>';
+  }
+
+  document.getElementById('cierre-content').innerHTML=html;
+}
+
+function cierreToggle(paso,val){
+  if(!ekEA)return;
+  if(!ekEA.cierre)ekEA.cierre={};
+  if(!ekEA.cierre[paso])ekEA.cierre[paso]={};
+  ekEA.cierre[paso].done=val;
+  if(val)ekEA.cierre[paso].fecha_done=new Date().toISOString().split('T')[0];
+  saveEv(ekEA).then(()=>{renderCierre();});
+}
+
+function cierreSet(paso,campo,val){
+  if(!ekEA)return;
+  if(!ekEA.cierre)ekEA.cierre={};
+  if(!ekEA.cierre[paso])ekEA.cierre[paso]={};
+  ekEA.cierre[paso][campo]=val;
+  saveEv(ekEA).catch(err=>console.warn('Cierre save fail:',err));
+}
+
+function itxiBukatutaModal(){
+  if(!ekEA)return;
+  if(!confirm('Espedientea itxiko da eta "Bukatuta" egoerara pasatuko da. Aurrera?'))return;
+  norPendiente={tipo:'cierre'};
+  document.getElementById('nor-modal-title').textContent='Nork ixten du expedientea?';
+  document.getElementById('ukapen-field').style.display='none';
+  abrirModal('modal-nor');
+}
+
+async function ejecutarCierreFinal(nor){
+  if(!ekEA)return;
+  ekEA.estado='bukatuta';
+  if(!ekEA.log)ekEA.log=[];
+  ekEA.log.push({fecha:new Date().toISOString().split('T')[0],nor,accion:'Espedientea itxi: Itxieran → Bukatuta'});
+  await saveEv(ekEA);
+  itxiModal('modal-nor');
+  renderDetaila();
+  render();
+}
+
 // Copia la respuesta + muestra recordatorio si toca (solo en Tramitatzen)
 async function kopiatuErantzuna(btn){
   await kopiatu('erantzun-text',btn);
@@ -1695,6 +1886,7 @@ async function init(){
   try{
     const data=await loadAll();
     ekitaldiak=data.ekitaldiak;antolatzaileak=data.antolatzaileak;
+    await autoPasoItxieran();
     showView('list');render();
   }catch(err){
     console.error(err);
