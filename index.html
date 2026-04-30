@@ -1853,10 +1853,7 @@ function cierreSet(paso,campo,val){
 function itxiBukatutaModal(){
   if(!ekEA)return;
   if(!confirm('Espedientea itxiko da eta "Bukatuta" egoerara pasatuko da. Aurrera?'))return;
-  norPendiente={tipo:'cierre'};
-  document.getElementById('nor-modal-title').textContent='Nork ixten du expedientea?';
-  document.getElementById('ukapen-field').style.display='none';
-  abrirModal('modal-nor');
+  norModal('Nork ixten du expedientea?','cierre',{});
 }
 
 async function ejecutarCierreFinal(nor){
