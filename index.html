@@ -810,6 +810,28 @@ function estadoInfo(id){return ESTADOS.find(s=>s.id===id)||{label:'—',cls:'',b
 function getDefA(id){return CK_A.find(c=>c.id===id);}
 function getDefB(id){return CK_B.find(c=>c.id===id);}
 function pendAll(e){return(e.checklist||[]).filter(c=>!c.hecho);}
+function egunakFaltaPlazoDoc(e){
+  // Devuelve días que faltan al plazo de docs. Negativo = vencido. null si no calculable.
+  if(!e.fecha)return null;
+  const ev=new Date(e.fecha+'T00:00:00');
+  const p=parseInt(e.plazoAntes)||15;
+  const doc=new Date(ev);doc.setDate(doc.getDate()-p);
+  const h=new Date();h.setHours(0,0,0,0);
+  return Math.round((doc-h)/86400000);
+}
+function adiNivel(e){
+  // Nivel de urgencia ADI! del evento. Devuelve null si no entra en ADI.
+  // 'itxieran' = morado, 'rojo' = plazo vencido + docs pend, 'naranja' = plazo ≤10d + docs pend
+  if(e.estado==='itxieran')return 'itxieran';
+  if(!isActivo(e)||!isFutur(e))return null;
+  const pendientes=pendAll(e).length;
+  if(pendientes===0)return null;
+  const d=egunakFaltaPlazoDoc(e);
+  if(d===null)return null;
+  if(d<0)return 'rojo';
+  if(d<=10)return 'naranja';
+  return null;
+}
 function isActivo(e){return e.estado!=='ukatua'&&e.estado!=='bukatuta';}
 function isFutur(e){const d=egunakFalta(e.fecha);return d===null||d>=0;}
 function accentC(e){if(e.estado==='ukatua')return'#e53935';const d=egunakFalta(e.fecha);if(d!==null&&d<=7)return'#e53935';if(d!==null&&d<=15)return'#f57c00';if(e.estado==='baimenduta')return'#7DC241';if(e.estado==='jasoa')return'#1565c0';return'#f57c00';}
@@ -825,32 +847,43 @@ function renderStats(){
 function renderSidebar(){
   const act=ekitaldiak.filter(e=>isActivo(e)&&isFutur(e));
   const itxieranCount=ekitaldiak.filter(e=>e.estado==='itxieran').length;
-  const adi=act.filter(e=>{const d=egunakFalta(e.fecha);return(d!==null&&d<=7)||pendAll(e).length>0;});
+  const adiCount=ekitaldiak.filter(e=>adiNivel(e)!==null).length;
   document.getElementById('sb-denak').textContent=act.length+itxieranCount;
-  document.getElementById('sb-adi').textContent=adi.length+itxieranCount;
+  document.getElementById('sb-adi').textContent=adiCount;
 }
 function renderAdi(){
   const panel=document.getElementById('adi-panel');
-  // Eventos en proceso de cierre — primero, prioritarios
-  const itxieranList=ekitaldiak.filter(e=>e.estado==='itxieran').slice(0,6);
-  // Eventos activos con plazo próximo o docs pendientes
-  const items=ekitaldiak.filter(e=>{if(!isActivo(e)||!isFutur(e))return false;if(e.estado==='itxieran')return false;const d=egunakFalta(e.fecha);return(d!==null&&d<=7)||pendAll(e).length>0;}).slice(0,6-itxieranList.length);
-  if(!itxieranList.length&&!items.length){panel.classList.remove('visible');return;}
+  // Recoge todos los eventos con nivel ADI y los ordena: itxieran → rojo → naranja
+  const all=ekitaldiak
+    .map(e=>({e,n:adiNivel(e)}))
+    .filter(x=>x.n!==null)
+    .sort((a,b)=>{
+      const ord={itxieran:0,rojo:1,naranja:2};
+      return (ord[a.n]||9)-(ord[b.n]||9);
+    })
+    .slice(0,8);
+  if(!all.length){panel.classList.remove('visible');return;}
   panel.classList.add('visible');
-  const itxieranHtml=itxieranList.map(e=>{
+  const html=all.map(({e,n})=>{
     const fechaStr=e.fecha?fmtF(e.fecha,'eu'):'--';
-    return '<div class="adi-item"><span><span class="adi-item-fecha" style="color:#5e35b1;font-weight:700">📋 ITXIERAN</span><strong>'+e.nombre+'</strong> — ekitaldia: '+fechaStr+'</span><button class="btn btn-xs btn-secondary" onclick="abrirDetaila('+e.id+')">Itxi</button></div>';
+    const pend=pendAll(e).length;
+    const dPlazo=egunakFaltaPlazoDoc(e);
+    let badge='',msg='',btnLabel='Ikusi';
+    if(n==='itxieran'){
+      badge='<span class="adi-item-fecha" style="color:#5e35b1;font-weight:700">📋 ITXIERAN</span>';
+      msg='<strong>'+e.nombre+'</strong> — ekitaldia: '+fechaStr;
+      btnLabel='Itxi';
+    }else if(n==='rojo'){
+      badge='<span class="adi-item-fecha urgent">🔴 EPEA IGAROTA</span>';
+      const diasV=Math.abs(dPlazo);
+      msg='<strong>'+e.nombre+'</strong> — '+fechaStr+' — '+diasV+' egun atzeratuta, '+pend+' dok. zain';
+    }else if(n==='naranja'){
+      badge='<span class="adi-item-fecha" style="color:#e65100;font-weight:700">🟠 EPE LARRIA</span>';
+      msg='<strong>'+e.nombre+'</strong> — '+fechaStr+' — '+dPlazo+' egun falta epera, '+pend+' dok. zain';
+    }
+    return '<div class="adi-item"><span>'+badge+msg+'</span><button class="btn btn-xs btn-secondary" onclick="abrirDetaila('+e.id+')">'+btnLabel+'</button></div>';
   }).join('');
-  const itemsHtml=items.map(e=>{
-    const d=egunakFalta(e.fecha);const p=pendAll(e).length;
-    const fechaStr=e.fecha?fmtF(e.fecha,'eu'):'--';
-    const urgent=(d!==null&&d<=7);
-    let msg='<span class="adi-item-fecha'+(urgent?' urgent':'')+'">'+fechaStr+'</span><strong>'+e.nombre+'</strong>';
-    if(d!==null&&d<=7)msg+=(d<0?' — ⛔ AMAITUTA':' — 🔴 '+d+' egun falta');
-    if(p>0)msg+=' — '+p+' dok. zain';
-    return '<div class="adi-item"><span>'+msg+'</span><button class="btn btn-xs btn-secondary" onclick="abrirDetaila('+e.id+')">Ikusi</button></div>';
-  }).join('');
-  document.getElementById('adi-list').innerHTML=itxieranHtml+itemsHtml;
+  document.getElementById('adi-list').innerHTML=html;
 }
 function filteredList(){
   let list=[...ekitaldiak];
