@@ -821,7 +821,7 @@ function egunakFaltaPlazoDoc(e){
 }
 function adiNivel(e){
   // Nivel de urgencia ADI! del evento. Devuelve null si no entra en ADI.
-  // 'itxieran' = morado, 'rojo' = plazo vencido + docs pend, 'naranja' = plazo ≤10d + docs pend
+  // 'itxieran' = morado, 'rojo' = plazo vencido + docs pend, 'naranja' = ≤2 días al plazo + docs pend
   if(e.estado==='itxieran')return 'itxieran';
   if(!isActivo(e)||!isFutur(e))return null;
   const pendientes=pendAll(e).length;
@@ -829,7 +829,7 @@ function adiNivel(e){
   const d=egunakFaltaPlazoDoc(e);
   if(d===null)return null;
   if(d<0)return 'rojo';
-  if(d<=10)return 'naranja';
+  if(d<=2)return 'naranja';
   return null;
 }
 function isActivo(e){return e.estado!=='ukatua'&&e.estado!=='bukatuta';}
