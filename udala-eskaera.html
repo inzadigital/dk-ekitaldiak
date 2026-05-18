@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="eu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eskaera-orria · Udala · Durango Kirolak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --dk-verde:#007032;
+  --dk-verde-oscuro:#005a28;
+  --dk-azul:#00475C;
+  --dk-verde-claro:#6AB023;
+  --gris-bg:#f4f6f8;
+  --gris-borde:#d8dde3;
+  --gris-texto:#2c3e50;
+  --gris-suave:#6b7c8c;
+  --rojo:#c0392b;
+  --rojo-bg:#fdecea;
+  --amarillo-bg:#fff8db;
+  --amarillo-borde:#f0c419;
+  --azul-bg:#e3f2fd;
+  --azul-borde:#1565c0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',system-ui,sans-serif;
+  background:var(--gris-bg);
+  color:var(--gris-texto);
+  line-height:1.5;
+  font-size:15px;
+  padding:20px 12px 60px;
+}
+.wrap{max-width:780px;margin:0 auto}
+.header{
+  background:#fff;
+  padding:22px 32px;
+  border-radius:8px 8px 0 0;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  border-bottom:4px solid var(--dk-verde);
+  display:flex;
+  align-items:center;
+  gap:26px;
+  flex-wrap:wrap;
+}
+.header-logo{max-width:200px;width:100%;height:auto;flex-shrink:0;display:block}
+.header-titulo{flex:1;min-width:240px}
+.header h1{font-size:20px;font-weight:800;color:var(--dk-verde);margin:0 0 4px}
+.header p{font-size:14px;color:var(--gris-suave);margin:0}
+.intro{
+  background:#fff;
+  padding:18px 24px;
+  border-bottom:1px solid var(--gris-borde);
+  font-size:14px;
+  color:var(--gris-suave);
+}
+.intro strong{color:var(--dk-verde)}
+form{
+  background:#fff;
+  padding:28px 32px;
+  border-radius:0 0 8px 8px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.section{margin-bottom:32px}
+.section-title{
+  font-size:17px;
+  font-weight:800;
+  color:var(--dk-verde);
+  border-bottom:2px solid var(--dk-verde);
+  padding-bottom:8px;
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.section-num{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  background:var(--dk-verde);
+  color:#fff;
+  border-radius:50%;
+  font-size:14px;
+  font-weight:800;
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.full{grid-column:1 / -1}
+.field{display:flex;flex-direction:column}
+label{font-size:13px;font-weight:700;color:var(--gris-texto);margin-bottom:5px}
+label .req{color:var(--rojo);margin-left:2px}
+.hint{font-size:12px;color:var(--gris-suave);margin-top:3px;font-style:italic}
+input[type="text"],input[type="email"],input[type="tel"],input[type="date"],input[type="time"],input[type="number"],select,textarea{
+  font-family:inherit;
+  font-size:14px;
+  padding:10px 12px;
+  border:1.5px solid var(--gris-borde);
+  border-radius:5px;
+  background:#fff;
+  color:var(--gris-texto);
+  width:100%;
+  transition:border-color 0.15s ease,box-shadow 0.15s ease;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:var(--dk-verde);
+  box-shadow:0 0 0 3px rgba(0,112,50,0.1);
+}
+textarea{resize:vertical;min-height:70px}
+.radio-group{display:flex;gap:20px;padding-top:6px;flex-wrap:wrap}
+.radio-group label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-weight:600;
+  cursor:pointer;
+  margin-bottom:0;
+  font-size:14px;
+}
+.radio-group input[type="radio"]{width:auto;accent-color:var(--dk-verde);cursor:pointer}
+.aviso{
+  padding:14px 18px;
+  border-radius:6px;
+  margin-bottom:18px;
+  font-size:14px;
+  line-height:1.55;
+  border-left:4px solid;
+}
+.aviso strong{font-weight:800}
+.aviso.kritikoa{background:var(--rojo-bg);border-left-color:var(--rojo);color:#6e1f17}
+.aviso.gomendio{background:var(--amarillo-bg);border-left-color:var(--amarillo-borde);color:#7a5b00}
+.baldintzak{
+  background:#fbfaf3;
+  border:1.5px solid #efe7c8;
+  border-radius:6px;
+  padding:20px 24px;
+  margin-bottom:16px;
+}
+.baldintzak ol{padding-left:22px;font-size:14px}
+.baldintzak ol li{margin-bottom:10px}
+.baldintzak li strong{color:var(--dk-azul)}
+.baldintzak .zehapenak{
+  background:var(--rojo-bg);
+  border-left:3px solid var(--rojo);
+  padding:12px 16px;
+  margin-top:14px;
+  border-radius:4px;
+  font-size:13.5px;
+  color:#6e1f17;
+}
+.baldintzak .zehapenak ul{padding-left:18px;margin-top:6px}
+.baldintzak .zehapenak li{margin-bottom:4px}
+.onarpen{
+  background:#fff;
+  border:2px dashed var(--dk-verde);
+  padding:16px 20px;
+  border-radius:6px;
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+}
+.onarpen input[type="checkbox"]{
+  width:22px;
+  height:22px;
+  flex-shrink:0;
+  cursor:pointer;
+  accent-color:var(--dk-verde);
+  margin-top:2px;
+}
+.onarpen label{
+  font-size:14px;
+  font-weight:700;
+  color:var(--dk-verde);
+  margin-bottom:0;
+  cursor:pointer;
+  line-height:1.45;
+}
+.btn-row{margin-top:28px;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+button{
+  font-family:inherit;
+  font-size:15px;
+  font-weight:700;
+  padding:12px 28px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.btn-primary{background:var(--dk-verde);color:#fff}
+.btn-primary:hover{background:var(--dk-verde-oscuro);transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,112,50,0.25)}
+.btn-secondary{background:#fff;color:var(--gris-texto);border:1.5px solid var(--gris-borde)}
+.btn-secondary:hover{background:var(--gris-bg)}
+.bidalketa-box{
+  display:none;
+  background:#fff;
+  border:2px solid var(--dk-verde-claro);
+  border-radius:8px;
+  padding:24px;
+  margin-top:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.bidalketa-box.show{display:block}
+.bidalketa-titulo{color:var(--dk-verde);font-weight:800;font-size:18px;margin-bottom:10px}
+.bidalketa-text{
+  background:#f9f9f9;
+  border:1px solid var(--gris-borde);
+  border-radius:4px;
+  padding:14px;
+  font-family:'Courier New',monospace;
+  font-size:12px;
+  max-height:240px;
+  overflow-y:auto;
+  white-space:pre-wrap;
+  margin:14px 0;
+}
+.cond-bloque{
+  display:none;
+  background:#f9fbf6;
+  border-left:3px solid var(--dk-verde-claro);
+  padding:14px 18px;
+  border-radius:4px;
+  margin-top:10px;
+  grid-column:1 / -1;
+}
+.cond-bloque.show{display:block}
+.error-msg{
+  background:var(--rojo-bg);
+  border:1px solid var(--rojo);
+  color:var(--rojo);
+  padding:10px 16px;
+  border-radius:4px;
+  margin-top:14px;
+  font-size:14px;
+  font-weight:600;
+  display:none;
+}
+.error-msg.show{display:block}
+.feedback-ok{
+  margin-top:10px;
+  color:var(--dk-verde);
+  font-weight:600;
+  display:none;
+  font-size:14px;
+}
+@media(max-width:600px){
+  body{padding:10px 6px 40px}
+  .header{padding:22px 18px}
+  form{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .section-title{font-size:15px}
+  button{padding:11px 20px;font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <img class="header-logo" src="data:image/jpeg;base64,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" alt="Durango Kirolak">
+  <div class="header-titulo">
+    <h1>Eskaera-orria · Udal sailak</h1>
+    <p>Durango Kirolaken instalazioak erabiltzeko</p>
+  </div>
+</div>
+
+<div class="intro">
+  Inprimaki hau <strong>Udaleko sailek bakarrik</strong> erabiltzeko da (Kultura, Euskara, Alkatetza, Gazteria...). Bidali baino lehen, irakurri <strong>erabilera-baldintzak</strong> behealdean. Eskaera bidaltzeak ez du erreserba zentzu: DKren administraziotik erabilgarritasuna baieztatuko zaizu.
+</div>
+
+<form id="eskaera-form" novalidate>
+
+<div class="section">
+  <div class="section-title"><span class="section-num">1</span>Eskatzailea</div>
+  <div class="grid">
+    <div class="field full">
+      <label>Saila / Departamentua<span class="req">*</span></label>
+      <input type="text" id="saila" placeholder="Adib.: Kultura, Euskara, Alkatetza, Gazteria...">
+    </div>
+    <div class="field">
+      <label>Arduradunaren kargua<span class="req">*</span></label>
+      <input type="text" id="kargua" placeholder="Adib.: Kultura saileko teknikaria">
+      <div class="hint">Karguz adierazi (ez izenez)</div>
+    </div>
+    <div class="field">
+      <label>Email<span class="req">*</span></label>
+      <input type="email" id="email" placeholder="adib@durango.eus">
+    </div>
+    <div class="field">
+      <label>Mugikorra<span class="req">*</span></label>
+      <input type="tel" id="mugikorra" placeholder="6XX XXX XXX">
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="section-num">2</span>Ekitaldia</div>
+  <div class="grid">
+    <div class="field full">
+      <label>Ekitaldiaren izena<span class="req">*</span></label>
+      <input type="text" id="izena">
+    </div>
+    <div class="field">
+      <label>Mota<span class="req">*</span></label>
+      <select id="mota">
+        <option value="">— Hautatu —</option>
+        <option>Ekitaldi instituzionala</option>
+        <option>Aurkezpena</option>
+        <option>Bazkari/lunch-a</option>
+        <option>Kontzertua</option>
+        <option>Prentsaurrekoa</option>
+        <option>Tailerra</option>
+        <option>Bestelakoa</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Parte-hartzaileak (gutxi gora behera)</label>
+      <input type="number" id="partehartzaileak" min="0">
+    </div>
+    <div class="field full">
+      <label>Deskribapena<span class="req">*</span></label>
+      <textarea id="deskribapena" rows="3" placeholder="Zer egingo da, nori zuzendua..."></textarea>
+    </div>
+    <div class="field">
+      <label>Hasiera data<span class="req">*</span></label>
+      <input type="date" id="hasieraData">
+    </div>
+    <div class="field">
+      <label>Bukaera data (egun bat baino gehiago bada)</label>
+      <input type="date" id="bukaeraData">
+    </div>
+    <div class="field">
+      <label>Hasiera ordua<span class="req">*</span></label>
+      <input type="time" id="hasieraOrdua">
+    </div>
+    <div class="field">
+      <label>Bukaera ordua<span class="req">*</span></label>
+      <input type="time" id="bukaeraOrdua">
+    </div>
+    <div class="field full">
+      <label>Publikora irekia?</label>
+      <div class="radio-group">
+        <label><input type="radio" name="irekia" value="Bai"> Bai</label>
+        <label><input type="radio" name="irekia" value="Ez" checked> Ez</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="section-num">3</span>Instalazioa</div>
+  <div class="grid">
+    <div class="field full">
+      <label>Eskatutako instalazioa<span class="req">*</span></label>
+      <select id="instalazioa">
+        <option value="">— Hautatu —</option>
+        <option>Ezkurdi Pilotalekua</option>
+        <option>San Fausto Frontoia</option>
+        <option>Tabira Futbol Zelaia (11)</option>
+        <option>Tabira Futbol Zelaia (7)</option>
+        <option>Tabira Saskibaloi Kantxa</option>
+        <option>Arripausueta Errugbi Zelaia</option>
+        <option>Arripausueta Futbol Zelaia</option>
+        <option>Arripausueta Padel Pistak</option>
+        <option>Arripausueta Tenis Pistak</option>
+        <option>Landako I Saskibaloi Kantxa</option>
+        <option>Landako I Barrio Aretoa</option>
+        <option>Landako II Igerilekuak</option>
+        <option>Hainbat instalazio</option>
+      </select>
+    </div>
+    <div class="field full">
+      <label>Aretoa edo zona zehatza (aukerakoa)</label>
+      <input type="text" id="zona" placeholder="Adib.: harmaila nagusia, sarrera nagusia, kantxa erdia...">
+    </div>
+    <div class="field full">
+      <label>Aldagela, biltegi edo bestelako espazioak behar dituzu?</label>
+      <textarea id="espazioak" rows="2"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="section-num">4</span>Muntaketa eta desmuntaketa</div>
+
+  <div class="aviso kritikoa">
+    <strong>⚠️ GARRANTZITSUA:</strong> Muntaketa eta desmuntaketako egunak eta orduak <strong>AURRE-ADOSTU behar dira</strong> Durango Kirolakekin (DK). Adostutako ordua baino lehen instalazioan sartzea espresuki <strong>debekatuta dago</strong>. Instalazio hauek erabilera aurretiazkoak dituzte (klubak, eskolak, abonatuak).
+  </div>
+
+  <div class="grid">
+    <div class="field full">
+      <label>Muntaketa behar duzu aurreko egunetan?</label>
+      <div class="radio-group">
+        <label><input type="radio" name="muntaketa" value="Bai" onchange="toggleBloque('muntaketa-bloque',true)"> Bai</label>
+        <label><input type="radio" name="muntaketa" value="Ez" checked onchange="toggleBloque('muntaketa-bloque',false)"> Ez</label>
+      </div>
+    </div>
+    <div class="cond-bloque" id="muntaketa-bloque">
+      <div class="grid">
+        <div class="field">
+          <label>Muntaketa hasiera (eguna)</label>
+          <input type="date" id="muntaketaData">
+        </div>
+        <div class="field">
+          <label>Muntaketa hasiera (ordua)</label>
+          <input type="time" id="muntaketaOrdua">
+        </div>
+        <div class="field full">
+          <label>Zer muntatuko da?</label>
+          <textarea id="muntaketaZer" rows="2" placeholder="Adib.: 10 mahai, 60 aulki, oholtza, dekorazioa..."></textarea>
+        </div>
+        <div class="field full">
+          <label>Muntaketan presente egongo den arduraduna (kargua + mugikorra)</label>
+          <input type="text" id="muntaketaArduradun" placeholder="Adib.: Kultura saileko teknikaria — 6XX XXX XXX">
+        </div>
+      </div>
+    </div>
+    <div class="field full">
+      <label>Desmuntaketa behar duzu hurrengo egunetan?</label>
+      <div class="radio-group">
+        <label><input type="radio" name="desmuntaketa" value="Bai" onchange="toggleBloque('desmuntaketa-bloque',true)"> Bai</label>
+        <label><input type="radio" name="desmuntaketa" value="Ez" checked onchange="toggleBloque('desmuntaketa-bloque',false)"> Ez</label>
+      </div>
+    </div>
+    <div class="cond-bloque" id="desmuntaketa-bloque">
+      <div class="grid">
+        <div class="field">
+          <label>Instalazioa libre uzteko eguna</label>
+          <input type="date" id="desmuntaketaData">
+        </div>
+        <div class="field">
+          <label>Ordu-muga</label>
+          <input type="time" id="desmuntaketaOrdua">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="section-num">5</span>Behar teknikoak</div>
+
+  <div class="aviso gomendio">
+    <strong>Oharra:</strong> DK ez du materialik (mahaiak, aulkiak, oholtza...) ekartzen ezta muntatzen ere. Muntaketa antolatzailearen ardura da, eta <strong>Udalaren Bulego Teknikoaren jarraibideei jarraitu behar zaie</strong>. Lurzorua, hormak eta instalazioa babesteko ardura ere antolatzailearena da.
+  </div>
+
+  <div class="grid">
+    <div class="field full">
+      <label>Megafonia behar duzu?</label>
+      <div class="radio-group">
+        <label><input type="radio" name="megafonia" value="Bai"> Bai</label>
+        <label><input type="radio" name="megafonia" value="Ez" checked> Ez</label>
+      </div>
+      <div class="hint">Ez dago megafoniarik instalazio guztietan.</div>
+    </div>
+    <div class="field full">
+      <label>Korronte elektrikoaren beharrak</label>
+      <textarea id="korronte" rows="2" placeholder="Adib.: 2 entxufe gehigarri, potentzia handia behar dut, etab. — DKra abisatu aldez aurretik berrikusteko."></textarea>
+    </div>
+    <div class="field full">
+      <label>Catering edo janaria izango da?</label>
+      <div class="radio-group">
+        <label><input type="radio" name="catering" value="Bai"> Bai</label>
+        <label><input type="radio" name="catering" value="Ez" checked> Ez</label>
+      </div>
+      <div class="hint">Hondakinen kudeaketa antolatzailearen ardura da.</div>
+    </div>
+    <div class="field full">
+      <label>Bestelako behar materialak</label>
+      <textarea id="bestelakoak" rows="2"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="section-num">6</span>Sarbidea eta arduraduna</div>
+  <div class="grid">
+    <div class="field full">
+      <label>Ekitaldiaren eguneko arduraduna (kargua + mugikorra)<span class="req">*</span></label>
+      <input type="text" id="egunArduradun" placeholder="Adib.: Kultura saileko teknikaria — 6XX XXX XXX">
+    </div>
+    <div class="field full">
+      <label>Instalazioa nork irekiko/itxiko du?<span class="req">*</span></label>
+      <input type="text" id="sarbide" placeholder="Adib.: DKren langilea aldez aurretik abisatua, giltza Bulego Teknikoaren bidez...">
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="section-num">7</span>Erabilera-baldintzak</div>
+
+  <div class="baldintzak">
+    <ol>
+      <li><strong>Aurrerapen-epea:</strong> Eskaera gutxienez <strong>15 egun natural</strong> lehenago bidali behar da. Premiazko eskaerak (15 egun baino gutxiago) bakarrik onartuko dira instalazioa libre badago eta justifikazio nahikorekin.</li>
+      <li><strong>Muntaketa eta desmuntaketa:</strong> Egunak eta orduak Durango Kirolakekin (DK) <strong>aurre-adostu behar dira idatziz</strong>. Adostutako ordua baino lehen instalaziora sartzea <strong>espresuki debekatuta dago</strong>. Instalazio hauek erabilera aurretiazkoak dituzte (klubak, eskolak, abonatuak).</li>
+      <li><strong>Instalazioaren egoera:</strong> Jaso bezala itzuli behar da. Garbiketa, hondakinak eta kalteen konponketa eskatzailearen sailaren kontura.</li>
+      <li><strong>Kirol-zorua:</strong> Mahaiak eta aulkiak ezin dira arrastatu. Babesleekin jarri behar dira, Udalaren Bulego Teknikoaren jarraibideen arabera. Iltzeak, tatxak edo zorua kaltetzen duen ezer ez.</li>
+      <li><strong>Catering:</strong> Hondakinak ekitaldia bukatzean atera. Debekatuta dago dutxetan, aldageletan edo egoki ez diren hustubidaetan isurketak egitea.</li>
+      <li><strong>Anulazioa edo aldaketa:</strong> Ahalik eta lehen jakinarazi.</li>
+    </ol>
+    <div class="zehapenak">
+      <strong>Ez betetzeagatik zehapenak:</strong>
+      <ul>
+        <li>Aparteko garbiketa: eskatzailearen sailaren kontura.</li>
+        <li>Hausturak (ateak, txorrotak, komunak...): konponketa eskatzailearen sailaren kontura.</li>
+        <li>Zoruan edo hormetan kalteak: eskatzailearen sailaren kontura osorik.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="onarpen">
+    <input type="checkbox" id="onarpena">
+    <label for="onarpena">Erabilera-baldintzak irakurri ditut eta nire sailaren izenean onartzen ditut.</label>
+  </div>
+</div>
+
+<div class="error-msg" id="error-msg"></div>
+
+<div class="btn-row">
+  <button type="button" class="btn-secondary" onclick="garbituFormularioa()">Garbitu</button>
+  <button type="button" class="btn-primary" onclick="prestatu()">Eskaera prestatu</button>
+</div>
+
+</form>
+
+<div class="bidalketa-box" id="bidalketa-box">
+  <div class="bidalketa-titulo">✓ Eskaera prest bidaltzeko</div>
+  <p style="font-size:14px;line-height:1.55">Sakatu <strong>"Email-a bidali"</strong> botoia eskaera DKra bidaltzeko. Email aplikazioa ez bada irekitzen, erabili <strong>"Testua kopiatu"</strong> botoia eta itsatsi <code style="background:#f0f0f0;padding:2px 5px;border-radius:3px">admindk@durangokirolak.net</code> helbidera bidaltzen duzun email berri batean.</p>
+  <div class="bidalketa-text" id="bidalketa-text"></div>
+  <div class="btn-row" style="justify-content:flex-start">
+    <button type="button" class="btn-primary" onclick="bidaliEmail()">📧 Email-a bidali</button>
+    <button type="button" class="btn-secondary" onclick="kopiatu()">📋 Testua kopiatu</button>
+    <button type="button" class="btn-secondary" onclick="berriaSortu()">← Eskaera berria</button>
+  </div>
+  <div class="feedback-ok" id="kopia-feedback"></div>
+</div>
+
+</div>
+
+<script>
+const EMAIL_ADMIN='admindk@durangokirolak.net';
+
+function toggleBloque(id,mostrar){
+  document.getElementById(id).classList.toggle('show',mostrar);
+}
+
+function getRadio(name){
+  const el=document.querySelector('input[name="'+name+'"]:checked');
+  return el?el.value:'';
+}
+
+function val(id){
+  const el=document.getElementById(id);
+  return el?el.value.trim():'';
+}
+
+function showError(msg){
+  const e=document.getElementById('error-msg');
+  e.textContent=msg;
+  e.classList.add('show');
+  e.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function hideError(){
+  document.getElementById('error-msg').classList.remove('show');
+}
+
+function validar(){
+  hideError();
+  const obligatorios=[
+    {id:'saila',txt:'Saila'},
+    {id:'kargua',txt:'Arduradunaren kargua'},
+    {id:'email',txt:'Email'},
+    {id:'mugikorra',txt:'Mugikorra'},
+    {id:'izena',txt:'Ekitaldiaren izena'},
+    {id:'mota',txt:'Mota'},
+    {id:'deskribapena',txt:'Deskribapena'},
+    {id:'hasieraData',txt:'Hasiera data'},
+    {id:'hasieraOrdua',txt:'Hasiera ordua'},
+    {id:'bukaeraOrdua',txt:'Bukaera ordua'},
+    {id:'instalazioa',txt:'Instalazioa'},
+    {id:'egunArduradun',txt:'Eguneko arduraduna'},
+    {id:'sarbide',txt:'Sarbidea'}
+  ];
+  for(const c of obligatorios){
+    if(!val(c.id)){
+      showError('Beharrezko eremua hutsik: '+c.txt);
+      document.getElementById(c.id).focus();
+      return false;
+    }
+  }
+  const emailVal=val('email');
+  if(emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)){
+    showError('Email helbidea ez da zuzena.');
+    document.getElementById('email').focus();
+    return false;
+  }
+  const hData=val('hasieraData');
+  if(hData){
+    const hoy=new Date();hoy.setHours(0,0,0,0);
+    const ekDate=new Date(hData);ekDate.setHours(0,0,0,0);
+    const diff=Math.ceil((ekDate-hoy)/(1000*60*60*24));
+    if(diff<15 && diff>=0){
+      if(!confirm('OHARRA: Ekitaldia '+diff+' egun barru da. Aurrerapen-epea 15 egun da. Premiazko eskaeratzat hartuko da eta justifikazio nahikoa eskatuko da. Jarraitu nahi duzu?')){
+        return false;
+      }
+    }
+    if(diff<0){
+      showError('Ekitaldiaren data iraganekoa da. Egiaztatu hasiera data.');
+      return false;
+    }
+  }
+  if(!document.getElementById('onarpena').checked){
+    showError('Erabilera-baldintzak onartu behar dira eskaera bidaltzeko.');
+    document.getElementById('onarpena').focus();
+    return false;
+  }
+  return true;
+}
+
+function eraikiTestua(){
+  const muntaketa=getRadio('muntaketa');
+  const desmuntaketa=getRadio('desmuntaketa');
+  let txt='';
+  txt+='UDAL SAILEN ESKAERA\n';
+  txt+='====================\n\n';
+  txt+='ESKATZAILEA\n';
+  txt+='-----------\n';
+  txt+='Saila: '+val('saila')+'\n';
+  txt+='Kargua: '+val('kargua')+'\n';
+  txt+='Email: '+val('email')+'\n';
+  txt+='Mugikorra: '+val('mugikorra')+'\n\n';
+
+  txt+='EKITALDIA\n';
+  txt+='---------\n';
+  txt+='Izena: '+val('izena')+'\n';
+  txt+='Mota: '+val('mota')+'\n';
+  txt+='Deskribapena: '+val('deskribapena')+'\n';
+  txt+='Hasiera data: '+val('hasieraData')+'\n';
+  if(val('bukaeraData'))txt+='Bukaera data: '+val('bukaeraData')+'\n';
+  txt+='Ordutegia: '+val('hasieraOrdua')+' - '+val('bukaeraOrdua')+'\n';
+  if(val('partehartzaileak'))txt+='Parte-hartzaileak: '+val('partehartzaileak')+'\n';
+  txt+='Publikora irekia: '+getRadio('irekia')+'\n\n';
+
+  txt+='INSTALAZIOA\n';
+  txt+='-----------\n';
+  txt+='Instalazioa: '+val('instalazioa')+'\n';
+  if(val('zona'))txt+='Aretoa/Zona: '+val('zona')+'\n';
+  if(val('espazioak'))txt+='Aldagela/biltegi beharrak: '+val('espazioak')+'\n';
+  txt+='\n';
+
+  txt+='MUNTAKETA / DESMUNTAKETA\n';
+  txt+='------------------------\n';
+  txt+='Muntaketa aurreko egunetan: '+muntaketa+'\n';
+  if(muntaketa==='Bai'){
+    if(val('muntaketaData'))txt+='  - Eguna: '+val('muntaketaData')+'\n';
+    if(val('muntaketaOrdua'))txt+='  - Ordua: '+val('muntaketaOrdua')+'\n';
+    if(val('muntaketaZer'))txt+='  - Zer muntatuko da: '+val('muntaketaZer')+'\n';
+    if(val('muntaketaArduradun'))txt+='  - Arduradun presente: '+val('muntaketaArduradun')+'\n';
+  }
+  txt+='Desmuntaketa hurrengo egunetan: '+desmuntaketa+'\n';
+  if(desmuntaketa==='Bai'){
+    if(val('desmuntaketaData'))txt+='  - Libre uzteko eguna: '+val('desmuntaketaData')+'\n';
+    if(val('desmuntaketaOrdua'))txt+='  - Ordu-muga: '+val('desmuntaketaOrdua')+'\n';
+  }
+  txt+='\n';
+
+  txt+='BEHAR TEKNIKOAK\n';
+  txt+='---------------\n';
+  txt+='Megafonia: '+getRadio('megafonia')+'\n';
+  if(val('korronte'))txt+='Korronte elektrikoa: '+val('korronte')+'\n';
+  txt+='Catering: '+getRadio('catering')+'\n';
+  if(val('bestelakoak'))txt+='Bestelakoak: '+val('bestelakoak')+'\n';
+  txt+='\n';
+
+  txt+='SARBIDEA ETA ARDURADUNA\n';
+  txt+='-----------------------\n';
+  txt+='Eguneko arduraduna: '+val('egunArduradun')+'\n';
+  txt+='Instalazioa irekitzea/ixtea: '+val('sarbide')+'\n\n';
+
+  txt+='BALDINTZAK ONARTUTA: BAI\n';
+  return txt;
+}
+
+function prestatu(){
+  if(!validar())return;
+  const txt=eraikiTestua();
+  document.getElementById('bidalketa-text').textContent=txt;
+  document.getElementById('bidalketa-box').classList.add('show');
+  document.getElementById('bidalketa-box').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function bidaliEmail(){
+  const izena=val('izena');
+  const saila=val('saila');
+  const subject='[UDALA - '+saila+'] Eskaera: '+izena;
+  const body=document.getElementById('bidalketa-text').textContent;
+  const url='mailto:'+EMAIL_ADMIN+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  window.location.href=url;
+}
+
+function kopiatu(){
+  const txt=document.getElementById('bidalketa-text').textContent;
+  const fb=document.getElementById('kopia-feedback');
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(()=>{
+      fb.textContent='✓ Testua kopiatu da. Itsatsi email batean eta bidali '+EMAIL_ADMIN+' helbidera.';
+      fb.style.display='block';
+      setTimeout(()=>fb.style.display='none',8000);
+    }).catch(()=>fallbackCopy(txt,fb));
+  }else{
+    fallbackCopy(txt,fb);
+  }
+}
+
+function fallbackCopy(txt,fb){
+  const ta=document.createElement('textarea');
+  ta.value=txt;ta.style.position='fixed';ta.style.top='-9999px';
+  document.body.appendChild(ta);ta.select();
+  try{
+    document.execCommand('copy');
+    fb.textContent='✓ Testua kopiatu da.';
+    fb.style.display='block';
+  }catch(e){
+    fb.textContent='⚠️ Ezin izan da kopiatu. Hautatu testua eskuz.';
+    fb.style.display='block';
+  }
+  document.body.removeChild(ta);
+  setTimeout(()=>fb.style.display='none',8000);
+}
+
+function garbituFormularioa(){
+  if(!confirm('Formulario osoa garbituko da. Jarraitu?'))return;
+  document.getElementById('eskaera-form').reset();
+  document.getElementById('muntaketa-bloque').classList.remove('show');
+  document.getElementById('desmuntaketa-bloque').classList.remove('show');
+  document.getElementById('bidalketa-box').classList.remove('show');
+  hideError();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function berriaSortu(){
+  garbituFormularioa();
+}
+</script>
+</body>
+</html>
