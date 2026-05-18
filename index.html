@@ -699,27 +699,111 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
 </div>
 </div>
 
-<!-- MODAL UDALA -->
+<!-- MODAL UDALA — formulario de alta de evento Udala -->
 <div class="modal-overlay" id="modal-udala">
-<div class="modal modal-sm">
-  <div class="modal-header"><div class="modal-title">🏛 Udal sailen eskaera-orria</div><button class="close-btn" onclick="itxiModal('modal-udala')">✕</button></div>
+<div class="modal">
+  <div class="modal-header"><div class="modal-title">🏛 Udal sailen ekitaldi berria</div><button class="close-btn" onclick="itxiModal('modal-udala')">✕</button></div>
   <div class="modal-body">
-    <p style="font-size:13px;line-height:1.5;color:#444;margin:0 0 12px">
-      Udal sailek (Kultura, Euskara, Alkatetza...) beren ekitaldi-eskaerak egiteko orria.
-      Eskaerak <code style="background:var(--grisa-arg);padding:1px 5px;border-radius:3px">admindk@durangokirolak.net</code> helbidera iristen dira.
-    </p>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-primary btn-sm" onclick="udalaIreki()">📂 Formularioa ireki (beste fitxan)</button>
-      <button class="btn btn-secondary btn-sm" onclick="udalaKopiatu()">🔗 Esteka kopiatu</button>
-      <button class="btn btn-secondary btn-sm" onclick="udalaEmail()">📧 Email berri bat sortu sailari bidaltzeko</button>
+    <p style="font-size:12px;line-height:1.5;color:var(--grisa-med);margin:0 0 14px">Udal sail batek (Kultura, Euskara, Alkatetza...) instalazio bat erabili nahi duenean, bete hemen ekitaldiaren datuak.</p>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">Ekitaldiaren izena *</label>
+        <input class="form-input" id="u-nombre" placeholder="Ekitaldiaren izena…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Saila *</label>
+        <input class="form-input" id="u-saila" placeholder="Kultura, Euskara, Alkatetza…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instalazioa *</label>
+        <select class="form-select" id="u-inst">
+          <option value="">— Hautatu —</option>
+          <option>Ezkurdi Pilotalekua</option>
+          <option>San Fausto Frontoia</option>
+          <option>Tabira Futbol Zelaia (11)</option>
+          <option>Tabira Futbol Zelaia (7)</option>
+          <option>Tabira Saskibaloi Kantxa</option>
+          <option>Arripausueta Errugbi Zelaia</option>
+          <option>Arripausueta Futbol Zelaia</option>
+          <option>Arripausueta Padel Pistak</option>
+          <option>Arripausueta Tenis Pistak</option>
+          <option>Landako I Saskibaloi Kantxa</option>
+          <option>Landako I Barrio Aretoa</option>
+          <option>Landako II Igerilekuak</option>
+          <option>Hainbat instalazio</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sailaren emaila</label>
+        <input class="form-input" type="email" id="u-email" placeholder="kultura@durango.eus">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kontaktua (mugikorra)</label>
+        <input class="form-input" id="u-tel" placeholder="6XX XXX XXX">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hasiera data *</label>
+        <input class="form-input" type="date" id="u-fecha">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bukaera data (hainbat egun bada)</label>
+        <input class="form-input" type="date" id="u-fecha-fin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hasiera ordua</label>
+        <input class="form-input" type="time" id="u-hora-ini">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bukaera ordua</label>
+        <input class="form-input" type="time" id="u-hora-fin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Parte-hartzaileak (gutxi gorabehera)</label>
+        <input class="form-input" type="number" id="u-partic" placeholder="60…">
+      </div>
+      <div class="form-group full">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--grisa-med);border-top:1px solid var(--muga);padding-top:12px;margin-top:4px">🔧 Muntaketa (aukerakoa)</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Muntaketa eguna</label>
+        <input class="form-input" type="date" id="u-mont-data">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Muntaketa ordua</label>
+        <input class="form-input" type="time" id="u-mont-ordua">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Nork irekiko du instalazioa</label>
+        <input class="form-input" id="u-mont-nork" placeholder="DKko langilea, giltza…">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Muntaketako arduraduna (kargua + mugikorra)</label>
+        <input class="form-input" id="u-mont-ardur">
+      </div>
+      <div class="form-group full">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--grisa-med);border-top:1px solid var(--muga);padding-top:12px;margin-top:4px">📦 Desmuntaketa (aukerakoa)</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Libre uzteko eguna</label>
+        <input class="form-input" type="date" id="u-desm-data">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ordu-muga</label>
+        <input class="form-input" type="time" id="u-desm-ordua">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Oharrak</label>
+        <textarea class="form-textarea" id="u-notas" rows="2" placeholder="Adostutakoa, kontuan hartzekoa…"></textarea>
+      </div>
     </div>
-    <div id="udala-feedback" style="display:none;margin-top:12px;padding:9px 12px;background:var(--berde-arg);color:var(--berde-osc);border:1px solid var(--berde);border-radius:4px;font-size:12px;font-weight:600"></div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-secondary btn-sm" onclick="itxiModal('modal-udala')">Itxi</button>
+    <button class="btn btn-secondary" onclick="itxiModal('modal-udala')">Utzi</button>
+    <button class="btn btn-primary" onclick="sortuUdalaEkitaldia()">✓ Gorde eta ireki</button>
   </div>
 </div>
 </div>
+
 
 <script>
 const SB_URL='https://tvusecjzevsjfduxflhw.supabase.co';
@@ -730,49 +814,79 @@ const MIREIA='mmendizabal@durangokirolak.net';
 const MANT='619 486 595';
 
 // ===================== UDALA =====================
-// URL del formulario: relativa al dominio actual (funciona en kirolkudeaketa.com, vercel.app o local)
-const UDALA_URL=new URL('udala-eskaera.html',window.location.href).href;
-
 function udEscAttr(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function udEscHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// --- Modal botón Udala (compartir formulario) ---
+// --- Formulario rápido de alta de evento Udala ---
 function abrirUdalaPanel(){
+  ['u-nombre','u-saila','u-email','u-tel','u-fecha-fin','u-hora-ini','u-hora-fin','u-partic','u-mont-data','u-mont-ordua','u-mont-nork','u-mont-ardur','u-desm-data','u-desm-ordua','u-notas'].forEach(function(id){
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const inst=document.getElementById('u-inst');if(inst)inst.value='';
+  const fch=document.getElementById('u-fecha');if(fch)fch.value=new Date().toISOString().split('T')[0];
   abrirModal('modal-udala');
-  const f=document.getElementById('udala-feedback');
-  if(f)f.style.display='none';
 }
-function udalaIreki(){
-  window.open(UDALA_URL,'_blank','noopener');
-}
-function udalaKopiatu(){
-  if(navigator.clipboard&&window.isSecureContext){
-    navigator.clipboard.writeText(UDALA_URL).then(function(){
-      mostrarFeedbackUdala('✓ Esteka kopiatu da. Itsatsi nahi duzun lekuan.');
-    }).catch(function(){
-      mostrarFeedbackUdala('⚠️ Ezin izan da kopiatu. Esteka: '+UDALA_URL);
-    });
-  }else{
-    mostrarFeedbackUdala('⚠️ Kopiatzeko hautatu esku eta sakatu Ctrl+C: '+UDALA_URL);
+
+async function sortuUdalaEkitaldia(){
+  const nombre=document.getElementById('u-nombre').value.trim();
+  const saila=document.getElementById('u-saila').value.trim();
+  const inst=document.getElementById('u-inst').value;
+  const fecha=document.getElementById('u-fecha').value;
+  if(!nombre||!saila||!inst||!fecha){alert('Izena, saila, instalazioa eta data beharrezkoak dira.');return;}
+  const exp=genExpediente();
+  const antName='Udala — '+saila;
+  if(!antolatzaileak.find(a=>a.izena===antName)){
+    const nA={id:Date.now()-1,izena:antName,oharra:'',creado:new Date().toISOString().split('T')[0]};
+    antolatzaileak.push(nA);saveAnt(nA).catch(function(){});
   }
-}
-function udalaEmail(){
-  const subject='Udal sailen eskaera-orria · Durango Kirolak';
-  const body='Kaixo,\n\n'+
-    'Hemen bidaltzen dizut udal sailek beren ekitaldi-eskaerak egiteko prestatu dugun orria:\n\n'+
-    UDALA_URL+'\n\n'+
-    'Ideia honakoa da: sail batek (Kultura, Euskara, Alkatetza...) Durango Kirolaken instalazioren bat erabili nahi duenean, formulario hau bete eta admindk@durangokirolak.net helbidera bidaliko digu. Horrela informazio guztia jasoko dugu (muntaketa, ordutegiak, beharrak, arduraduna...) eta ez da gehiago gertatuko ekitaldi bat instalazioa erabiltzen ari diren klubak molestatuz prestatzen.\n\n'+
-    'Zer iruditzen?\n\n'+
-    'Nahi izanez gero, erabiltzen has gaitezke eta gero, behar izanez gero, moldaketak egingo dizkiogu.\n\n'+
-    'Esango didazu.\n\n'+
-    'Eskerrik asko,';
-  window.location.href='mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-}
-function mostrarFeedbackUdala(msg){
-  const f=document.getElementById('udala-feedback');
-  if(!f)return;
-  f.textContent=msg;
-  f.style.display='block';
+  const nuevo={
+    id:Date.now(),
+    expediente:exp,
+    nombre:nombre,
+    tipo:'ekitaldi_udala',
+    instalacion:inst,
+    fecha:fecha,
+    fechaFin:document.getElementById('u-fecha-fin').value||'',
+    horaIni:document.getElementById('u-hora-ini').value,
+    horaFin:document.getElementById('u-hora-fin').value,
+    antolatzailea:antName,
+    idioma:'eu',
+    participantes:document.getElementById('u-partic').value,
+    tasa:'',
+    besteak:'',
+    estado:'jasoa',
+    plazoAntes:15,
+    checklist:[],
+    checklistC:[],
+    notas:document.getElementById('u-notas').value,
+    log:[{fecha:new Date().toLocaleDateString('eu-ES'),nor:'--',accion:'Udal ekitaldia sortu ('+exp+')'}],
+    creado:new Date().toISOString().split('T')[0],
+    motivoUkapen:'',
+    erantzunGordea:'',
+    cierre:{udala:{
+      sailaEmail:document.getElementById('u-email').value.trim(),
+      kontaktua:document.getElementById('u-tel').value.trim(),
+      muntaiaData:document.getElementById('u-mont-data').value,
+      muntaiaOrdua:document.getElementById('u-mont-ordua').value,
+      muntaiaNork:document.getElementById('u-mont-nork').value.trim(),
+      muntaiaArduradun:document.getElementById('u-mont-ardur').value.trim(),
+      desmuntaiaData:document.getElementById('u-desm-data').value,
+      desmuntaiaOrdua:document.getElementById('u-desm-ordua').value,
+      oharrak:''
+    }}
+  };
+  loading(true);
+  try{
+    await saveEv(nuevo);
+    ekitaldiak.push(nuevo);
+    itxiModal('modal-udala');
+    render();
+    setTimeout(function(){abrirDetaila(nuevo.id);},100);
+  }catch(err){
+    alert('Gordatzeko errorea: '+err.message);
+  }finally{
+    loading(false);
+  }
 }
 
 // --- Sección "Udala datu osagarriak" en el detalle ---
@@ -787,8 +901,9 @@ function renderUdalaPanel(){
   const dis=ro?'disabled':'';
   let html='';
   html+='<div style="font-size:12px;color:var(--grisa-med);margin-bottom:12px;line-height:1.5">Udal sailaren ekitaldia. Jaso hemen DKrekin adostutako muntaketa eta sarbidea.</div>';
-  html+='<div class="cierre-step-fields" style="margin-bottom:12px">';
-  html+='<div><label>Sailaren emaila (erreklamazioetarako)</label><input type="email" '+dis+' value="'+udEscAttr(u.sailaEmail)+'" onchange="udalaSet(\'sailaEmail\',this.value)" placeholder="adib: kultura@durango.eus"></div>';
+  html+='<div class="cierre-step-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+  html+='<div><label>Sailaren emaila</label><input type="email" '+dis+' value="'+udEscAttr(u.sailaEmail)+'" onchange="udalaSet(\'sailaEmail\',this.value)" placeholder="adib: kultura@durango.eus"></div>';
+  html+='<div><label>Kontaktua (mugikorra)</label><input type="text" '+dis+' value="'+udEscAttr(u.kontaktua)+'" onchange="udalaSet(\'kontaktua\',this.value)"></div>';
   html+='</div>';
   html+='<div style="font-size:11px;font-weight:700;color:#00475c;text-transform:uppercase;letter-spacing:0.5px;margin:4px 0 6px">🔧 Muntaketa adostua</div>';
   html+='<div class="cierre-step-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
