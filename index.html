@@ -705,6 +705,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
   <div class="modal-header"><div class="modal-title">🏛 Udal sailen ekitaldi berria</div><button class="close-btn" onclick="itxiModal('modal-udala')">✕</button></div>
   <div class="modal-body">
     <p style="font-size:12px;line-height:1.5;color:var(--grisa-med);margin:0 0 14px">Udal sail batek (Kultura, Euskara, Alkatetza...) instalazio bat erabili nahi duenean, bete hemen ekitaldiaren datuak.</p>
+    <div class="ia-eskaera-box">
+      <div class="ia-eskaera-box-title">✨ IA laguntzailea — Eskaera testua itsatsi / Pegar texto de la solicitud</div>
+      <textarea id="ia-udala-txt" class="ia-eskaera-textarea" placeholder="Hemen itsatsi udal sailaren eskaera-emaila edo mezua osorik. La IA leerá el texto y rellenará el formulario de abajo. Berdez markatutako eremuak IAk bete dituenak dira — berrikusi mesedez."></textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+        <button id="ia-udala-btn" class="btn btn-primary btn-sm" onclick="iaBeteUdala()">✨ Bete formularioa</button>
+        <button class="btn btn-secondary btn-sm" onclick="iaUdalaGarbitu()">🗑️ Testua garbitu</button>
+        <span id="ia-udala-status" class="ia-status"></span>
+      </div>
+    </div>
     <div class="form-grid">
       <div class="form-group full">
         <label class="form-label">Ekitaldiaren izena *</label>
@@ -824,6 +833,8 @@ function abrirUdalaPanel(){
   });
   const inst=document.getElementById('u-inst');if(inst)inst.value='';
   const fch=document.getElementById('u-fecha');if(fch)fch.value=new Date().toISOString().split('T')[0];
+  iaUdalaGarbitu();
+  if(typeof iaGarbituResaltado==='function')iaGarbituResaltado();
   abrirModal('modal-udala');
 }
 
@@ -886,6 +897,120 @@ async function sortuUdalaEkitaldia(){
     alert('Gordatzeko errorea: '+err.message);
   }finally{
     loading(false);
+  }
+}
+
+// --- IA: pegar email del área y rellenar el formulario Udala ---
+function iaUdalaGarbitu(){
+  const t=document.getElementById('ia-udala-txt');if(t)t.value='';
+  const s=document.getElementById('ia-udala-status');if(s){s.textContent='';s.className='ia-status';}
+}
+
+async function iaBeteUdala(){
+  const txt=(document.getElementById('ia-udala-txt').value||'').trim();
+  const status=document.getElementById('ia-udala-status');
+  const btn=document.getElementById('ia-udala-btn');
+  if(!txt){status.textContent='⚠️ Itsatsi eskaeraren testua lehenik';status.className='ia-status err';return;}
+  status.textContent='⏳ Aztertzen...';status.className='ia-status';
+  btn.disabled=true;
+  const hoy=new Date().toISOString().split('T')[0];
+  const sysPrompt=`Eres un asistente que extrae información de solicitudes de eventos de áreas del Ayuntamiento de Durango (Kultura, Euskara, Alkatetza, Gazteria...) que quieren usar instalaciones de Durango Kirolak.
+
+Hoy es ${hoy}. Si el texto menciona fechas relativas (mañana, este sábado, la semana que viene...) calcúlalas tomando esta fecha como referencia.
+
+Recibirás el texto de un email o mensaje en castellano, euskera o ambos. Devuelve SOLO un objeto JSON válido con los campos siguientes. Si un campo no se puede deducir del texto, usa null. NO inventes datos.
+
+Esquema:
+{
+  "nombre": string|null,
+  "saila": string|null,
+  "email": string|null,
+  "kontaktua": string|null,
+  "instalacion": string|null,
+  "fecha": string|null,
+  "fechaFin": string|null,
+  "horaIni": string|null,
+  "horaFin": string|null,
+  "participantes": number|null,
+  "muntaiaData": string|null,
+  "muntaiaOrdua": string|null,
+  "muntaiaNork": string|null,
+  "muntaiaArduradun": string|null,
+  "desmuntaiaData": string|null,
+  "desmuntaiaOrdua": string|null,
+  "oharrak": string|null
+}
+
+Reglas de cada campo:
+- "nombre": nombre del evento.
+- "saila": área municipal solicitante (Kultura, Euskara, Alkatetza, Gazteria, Hezkuntza, Berdintasuna, Gizarte Zerbitzuak...).
+- "instalacion": uno EXACTO de: ${IA_INSTALACIONES.map(i=>'"'+i+'"').join(', ')}. Respeta paréntesis y mayúsculas. Si no estás seguro, null.
+- "fecha", "fechaFin", "muntaiaData", "desmuntaiaData": formato YYYY-MM-DD.
+- "horaIni", "horaFin", "muntaiaOrdua", "desmuntaiaOrdua": formato HH:MM (24h).
+- "kontaktua": teléfono de contacto de la persona del área.
+- "participantes": número entero.
+- "muntaiaNork": quién abrirá la instalación para el montaje.
+- "muntaiaArduradun": persona responsable presente en el montaje (cargo + móvil).
+- "oharrak": información extra relevante para uso interno que no encaje en otro campo.
+
+Mejor null que inventar. Responde SOLO con el JSON, sin texto adicional, sin markdown, sin fences.`;
+  try{
+    const r=await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1024,
+        system:sysPrompt,
+        messages:[{role:'user',content:txt}]
+      })
+    });
+    const data=await r.json().catch(()=>null);
+    if(!r.ok){
+      const msg=(data&&data.error&&(data.error.message||data.error))||('HTTP '+r.status);
+      throw new Error(typeof msg==='string'?msg:JSON.stringify(msg));
+    }
+    if(!data||!data.content||!data.content[0]||!data.content[0].text){
+      throw new Error('Erantzun hutsa edo formatu okerra');
+    }
+    const datos=iaExtraerJSON(data.content[0].text);
+    iaAplicarUdala(datos);
+    status.textContent='✅ Eginda. Berdez markatutako eremuak berrikusi mesedez.';status.className='ia-status ok';
+  }catch(e){
+    console.error('IA Udala error:',e);
+    status.textContent='❌ Errorea: '+(e.message||'ezezaguna');status.className='ia-status err';
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function iaAplicarUdala(d){
+  if(!d||typeof d!=='object')return;
+  iaGarbituResaltado();
+  const setVal=(id,val)=>{
+    if(val==null||val==='')return;
+    const el=document.getElementById(id);if(!el)return;
+    el.value=val;iaMarcarCampo(el);
+  };
+  setVal('u-nombre',d.nombre);
+  setVal('u-saila',d.saila);
+  setVal('u-email',d.email);
+  setVal('u-tel',d.kontaktua);
+  setVal('u-fecha',iaNormalizarFecha(d.fecha));
+  setVal('u-fecha-fin',iaNormalizarFecha(d.fechaFin));
+  setVal('u-hora-ini',iaNormalizarHora(d.horaIni));
+  setVal('u-hora-fin',iaNormalizarHora(d.horaFin));
+  setVal('u-mont-data',iaNormalizarFecha(d.muntaiaData));
+  setVal('u-mont-ordua',iaNormalizarHora(d.muntaiaOrdua));
+  setVal('u-mont-nork',d.muntaiaNork);
+  setVal('u-mont-ardur',d.muntaiaArduradun);
+  setVal('u-desm-data',iaNormalizarFecha(d.desmuntaiaData));
+  setVal('u-desm-ordua',iaNormalizarHora(d.desmuntaiaOrdua));
+  setVal('u-notas',d.oharrak);
+  const p=iaCoaccionarParticipantes(d.participantes);
+  if(p!=null){const el=document.getElementById('u-partic');if(el){el.value=p;iaMarcarCampo(el);}}
+  if(d.instalacion&&IA_INSTALACIONES.includes(d.instalacion)){
+    const el=document.getElementById('u-inst');if(el){el.value=d.instalacion;iaMarcarCampo(el);}
   }
 }
 
