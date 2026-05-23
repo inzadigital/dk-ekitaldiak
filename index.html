@@ -1076,6 +1076,70 @@ function sortuUdalaErreklamazioa(){
   window.location.href='mailto:'+encodeURIComponent(dest)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
 }
 
+function sortuFidantzaMezua(){
+  const e=ekEA;if(!e)return;
+  if(!e.cierre)e.cierre={};
+  if(!e.cierre.paso2)e.cierre.paso2={};
+  const p2=e.cierre.paso2;
+  const eg=p2.egoera;
+  if(eg!=='osorik'&&eg!=='erdizka'){
+    alert('Fidantza-egoera aukeratu behar duzu (Itzulita osorik edo Erdizka itzulita).');
+    return;
+  }
+  let importe;
+  if(eg==='osorik'){
+    importe=600;
+  }else{
+    importe=Number(p2.importeItzuli||0);
+    if(!importe||importe<=0){
+      alert('Erdizka itzultzeko, importea adierazi behar duzu Pauso 2-ko "Itzuliko den zenbatekoa" eremuan.');
+      return;
+    }
+  }
+  const antol=e.antolatzailea||'';
+  const izena=e.nombre||'';
+  const oh=(p2.oharrak||'').trim();
+
+  // Bloque EUSKERA
+  let eu='Gaia: [DK Ekitaldiak] '+izena+' — Fidantza itzultzea / Devolución de fianza\n\n';
+  eu+='Kaixo '+antol+':\n\n';
+  if(eg==='osorik'){
+    eu+='"'+izena+'" ekitaldia behar bezala amaitu da eta instalazioaren azterketa egin da. ';
+    eu+='Dena ondo dagoela egiaztatu denez, 600€-ko fidantza osorik itzultzeko prozesua martxan jarriko da.\n\n';
+  }else{
+    eu+='"'+izena+'" ekitaldia amaitu da eta instalazioaren azterketa egin da. ';
+    eu+='Azterketaren ondorioz, fidantzaren zati bat itzuliko zaizu: '+importe+'€.\n';
+    if(oh){eu+='Atxikitako zenbatekoaren xehetasunak: '+oh+'.\n';}
+    eu+='\n';
+  }
+  eu+='Administrazio-sailean zure kontu zenbakia berretsiko dugu. Aldaketarik egon bada, mesedez erantzun email honi kontu zenbaki eguneratuarekin.\n\n';
+  eu+='Edozein zalantza argitzeko, jar zaitez gurekin harremanetan.\n\n';
+  eu+='Eskerrik asko zure parte hartzeagatik,\nDurango Kirolak';
+
+  // Bloque CASTELLANO
+  let es='\n\n────────────────────────────────────────\n\n';
+  es+='Hola '+antol+':\n\n';
+  if(eg==='osorik'){
+    es+='El evento "'+izena+'" ha finalizado correctamente y se ha realizado la revisión de la instalación. ';
+    es+='Confirmamos que todo está en orden, por lo que se tramitará la devolución íntegra de la fianza de 600€.\n\n';
+  }else{
+    es+='El evento "'+izena+'" ha finalizado y se ha realizado la revisión de la instalación. ';
+    es+='Como resultado, se devolverá parte de la fianza: '+importe+'€.\n';
+    if(oh){es+='Detalles del importe retenido: '+oh+'.\n';}
+    es+='\n';
+  }
+  es+='Desde el departamento administrativo verificaremos tu número de cuenta. Si ha habido cambios, por favor responde a este email con el número de cuenta actualizado.\n\n';
+  es+='Para cualquier consulta, contacta con nosotros.\n\n';
+  es+='Gracias por tu participación,\nDurango Kirolak';
+
+  const mezua=eu+es;
+  p2.mezuaSortua=mezua;
+  saveEv(e).catch(err=>console.warn('Save mezua fail:',err));
+  if(!e.log)e.log=[];
+  e.log.push({fecha:new Date().toISOString().split('T')[0],nor:'-',accion:'Fidantza itzultzeko mezua sortua ('+importe+'€)'});
+  renderDetaila();
+}
+
 async function sbF(path,opts={}){
   const {method='GET',body,prefer}=opts;
   const h={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
@@ -2193,10 +2257,21 @@ function renderCierre(){
     html+='<div class="cierre-step-title"><input type="checkbox" '+(p2done?'checked':'')+' '+dis+' onchange="cierreToggle(\'paso2\',this.checked)"> Pauso 2 — Fidantza</div>';
     if(p2done||!readonly){
       html+='<div class="cierre-step-fields">';
-      html+='<div><label>Egoera</label><select '+dis+' onchange="cierreSet(\'paso2\',\'egoera\',this.value)">';
+      html+='<div><label>Egoera</label><select '+dis+' onchange="cierreSet(\'paso2\',\'egoera\',this.value);renderDetaila()">';
       [['','-- Aukeratu --'],['osorik','Itzulita osorik (devuelta íntegra)'],['atxikita','Atxikita (retenida)'],['erdizka','Erdizka itzulita (devuelta parcial)']].forEach(o=>{html+='<option value="'+o[0]+'"'+(p2.egoera===o[0]?' selected':'')+'>'+o[1]+'</option>';});
       html+='</select></div>';
+      // Importe a devolver: solo si erdizka
+      if(p2.egoera==='erdizka'){
+        html+='<div><label>Itzuliko den zenbatekoa (€)</label><input type="number" min="0" step="1" '+dis+' value="'+(p2.importeItzuli||'')+'" onchange="cierreSet(\'paso2\',\'importeItzuli\',Number(this.value)||0)" placeholder="adib: 300"></div>';
+      }
       html+='<div><label>Oharrak</label><textarea '+dis+' onchange="cierreSet(\'paso2\',\'oharrak\',this.value)" placeholder="Importes, decretos, motivos...">'+(p2.oharrak||'')+'</textarea></div>';
+      // Botón Mezua sortu: solo si egoera = osorik o erdizka
+      if((p2.egoera==='osorik'||p2.egoera==='erdizka')&&!readonly){
+        html+='<div style="grid-column:1/-1;margin-top:4px"><button class="btn btn-secondary btn-sm" onclick="sortuFidantzaMezua()" style="background:#e8f5d6;border-color:#7DC241;color:#2e7d32">📧 Fidantza-mezua sortu</button></div>';
+        if(p2.mezuaSortua){
+          html+='<div style="grid-column:1/-1;margin-top:8px"><label>Sortutako mezua / Mensaje generado</label><textarea id="fidantza-mezua-txt" rows="20" readonly style="font-family:monospace;font-size:11px;line-height:1.4">'+p2.mezuaSortua.replace(/</g,"&lt;")+'</textarea><div style="margin-top:4px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="kopiatu(\'fidantza-mezua-txt\',this)">📋 Kopiatu</button><button class="btn btn-secondary btn-sm" onclick="cierreSet(\'paso2\',\'mezuaSortua\',\'\');renderDetaila()">✕ Itxi</button></div></div>';
+        }
+      }
       html+='</div>';
     }
     html+='</div>';
