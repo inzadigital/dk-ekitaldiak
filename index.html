@@ -596,9 +596,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--grisa-bg);color:var(--bel
         <label class="form-label">Hasiera data *</label>
         <input class="form-input" type="date" id="f-fecha">
       </div>
-      <div class="form-group">
-        <label class="form-label">Amaiera data (hainbat egun bada)</label>
+      <div class="form-group" id="f-fecha-fin-group">
+        <label class="form-label">Amaiera data (hainbat egun jarraian bada)</label>
         <input class="form-input" type="date" id="f-fecha-fin">
+      </div>
+      <div class="form-group full">
+        <label class="form-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:0">
+          <input type="checkbox" id="f-egun-konkretuak-chk" onchange="toggleEgunKonkretuak()" style="width:15px;height:15px">
+          Egun konkretuak (ez jarraituak) / Días concretos no consecutivos
+        </label>
+        <div class="hint" style="margin-top:3px">Adib: 4 astelehen ez jarraituak. Aktibatzen bada, "Amaiera data" ez da erabiliko.</div>
+        <div id="f-egun-konkretuak-list" style="display:none;margin-top:8px"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Hasiera ordua</label>
@@ -1149,8 +1157,8 @@ async function sbF(path,opts={}){
   return r.status===204?null:r.json().catch(()=>null);
 }
 function migrarInstalacion(n){if(!n)return'';if(n==='Hainbat instalazio')return'Zenbait instalakuntza';if(n==='San Fausto Frontoia')return'San Fausto Pilotalekua';return n;}
-function fromDB(r){return{id:r.id,expediente:r.expediente||'',nombre:r.nombre,tipo:r.tipo||'',instalacion:migrarInstalacion(r.instalacion||''),fecha:r.fecha||'',fechaFin:r.fecha_fin||'',horaIni:r.hora_ini||'',horaFin:r.hora_fin||'',antolatzailea:r.antolatzailea||'',idioma:r.idioma||'eu',participantes:r.participantes||'',tasa:r.tasa||'',besteak:r.besteak||'',estado:r.estado||'jasoa',plazoAntes:r.plazo_antes||15,checklist:r.checklist||[],checklistC:r.checklist_c||[],notas:r.notas||'',log:r.log||[],motivoUkapen:r.motivo_ukapen||'',erantzunGordea:r.erantzun_gordea||'',cierre:r.cierre||{},creado:r.creado||''};}
-function toDB(e){return{id:e.id,expediente:e.expediente,nombre:e.nombre,tipo:e.tipo,instalacion:e.instalacion,fecha:e.fecha,fecha_fin:e.fechaFin||null,hora_ini:e.horaIni,hora_fin:e.horaFin,antolatzailea:e.antolatzailea,idioma:e.idioma,participantes:e.participantes,tasa:e.tasa||'',besteak:e.besteak,estado:e.estado,plazo_antes:e.plazoAntes,checklist:e.checklist,checklist_c:e.checklistC||[],notas:e.notas,log:e.log,motivo_ukapen:e.motivoUkapen,erantzun_gordea:e.erantzunGordea||'',cierre:e.cierre||{},creado:e.creado};}
+function fromDB(r){return{id:r.id,expediente:r.expediente||'',nombre:r.nombre,tipo:r.tipo||'',instalacion:migrarInstalacion(r.instalacion||''),fecha:r.fecha||'',fechaFin:r.fecha_fin||'',fechasExtra:r.fechas_extra||null,horaIni:r.hora_ini||'',horaFin:r.hora_fin||'',antolatzailea:r.antolatzailea||'',idioma:r.idioma||'eu',participantes:r.participantes||'',tasa:r.tasa||'',besteak:r.besteak||'',estado:r.estado||'jasoa',plazoAntes:r.plazo_antes||15,checklist:r.checklist||[],checklistC:r.checklist_c||[],notas:r.notas||'',log:r.log||[],motivoUkapen:r.motivo_ukapen||'',erantzunGordea:r.erantzun_gordea||'',cierre:r.cierre||{},creado:r.creado||''};}
+function toDB(e){return{id:e.id,expediente:e.expediente,nombre:e.nombre,tipo:e.tipo,instalacion:e.instalacion,fecha:e.fecha,fecha_fin:e.fechaFin||null,fechas_extra:e.fechasExtra||null,hora_ini:e.horaIni,hora_fin:e.horaFin,antolatzailea:e.antolatzailea,idioma:e.idioma,participantes:e.participantes,tasa:e.tasa||'',besteak:e.besteak,estado:e.estado,plazo_antes:e.plazoAntes,checklist:e.checklist,checklist_c:e.checklistC||[],notas:e.notas,log:e.log,motivo_ukapen:e.motivoUkapen,erantzun_gordea:e.erantzunGordea||'',cierre:e.cierre||{},creado:e.creado};}
 function fromDBA(r){return{id:r.id,izena:r.izena,oharra:r.oharra||'',creado:r.creado};}
 
 async function loadAll(){
@@ -1290,7 +1298,37 @@ function adiNivel(e){
   return null;
 }
 function isActivo(e){return e.estado!=='ukatua'&&e.estado!=='bukatuta';}
-function isFutur(e){const f=e.fechaFin||e.fecha;const d=egunakFalta(f);return d===null||d>=0;}
+
+// EGUN KONKRETUAK (fechas sueltas no consecutivas)
+let fechasExtraTmp=[];
+function toggleEgunKonkretuak(){
+  const on=document.getElementById('f-egun-konkretuak-chk').checked;
+  document.getElementById('f-egun-konkretuak-list').style.display=on?'block':'none';
+  document.getElementById('f-fecha-fin-group').style.display=on?'none':'';
+  if(on){
+    if(!fechasExtraTmp.length){const base=document.getElementById('f-fecha').value;fechasExtraTmp=[base||''];}
+    document.getElementById('f-fecha-fin').value='';
+  }
+  renderFechasExtra();
+}
+function renderFechasExtra(){
+  const wrap=document.getElementById('f-egun-konkretuak-list');
+  if(!wrap)return;
+  let html='';
+  fechasExtraTmp.forEach((f,i)=>{
+    html+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">'
+      +'<input class="form-input" type="date" style="max-width:180px" value="'+(f||'')+'" onchange="fechaExtraSet('+i+',this.value)">'
+      +(fechasExtraTmp.length>1?'<button type="button" class="btn btn-danger btn-xs" onclick="fechaExtraDel('+i+')">✕</button>':'')
+      +'</div>';
+  });
+  html+='<button type="button" class="btn btn-secondary btn-sm" onclick="fechaExtraAdd()">＋ Eguna gehitu</button>';
+  wrap.innerHTML=html;
+}
+function fechaExtraSet(i,v){fechasExtraTmp[i]=v;}
+function fechaExtraAdd(){fechasExtraTmp.push('');renderFechasExtra();}
+function fechaExtraDel(i){fechasExtraTmp.splice(i,1);renderFechasExtra();}
+function ultimaFecha(e){if(e.fechasExtra&&e.fechasExtra.length)return e.fechasExtra.slice().sort()[e.fechasExtra.length-1];return e.fechaFin||e.fecha;}
+function isFutur(e){const f=ultimaFecha(e);const d=egunakFalta(f);return d===null||d>=0;}
 function accentC(e){if(e.estado==='ukatua')return'#e53935';const d=egunakFalta(e.fecha);if(d!==null&&d<=7)return'#e53935';if(d!==null&&d<=15)return'#f57c00';if(e.estado==='baimenduta')return'#7DC241';if(e.estado==='jasoa')return'#1565c0';return'#f57c00';}
 
 function render(){renderStats();renderSidebar();renderAdi();renderLista();}
@@ -1376,7 +1414,7 @@ function renderLista(){
       +'<div class="event-meta">'
       +(e.expediente?'<span class="exp-badge">'+e.expediente+'</span>':'')
       +'<span>📍 '+(e.instalacion||'—')+'</span>'
-      +'<span>📅 '+fmtFShort(e.fecha)+'</span>'
+      +'<span>📅 '+fmtFShort(e.fecha)+((e.fechasExtra&&e.fechasExtra.length>1)?' (+'+(e.fechasExtra.length-1)+' egun)':'')+'</span>'
       +(e.antolatzailea?'<span>👤 '+e.antolatzailea+'</span>':'')
       +(p>0?'<span style="color:var(--laranja)">📄 '+p+' dok. zain</span>':'')
       +(e.tasa?'<span style="color:var(--morea)">💶 '+e.tasa+'</span>':'')
@@ -1417,7 +1455,7 @@ function renderDetaila(){
   ib.style.cssText='font-size:11px;font-weight:600;padding:2px 7px;border-radius:3px;background:'+(e.idioma==='eu'?'#e8f5d6':'#e3f2fd')+';color:'+(e.idioma==='eu'?'#2e7d32':'#1565c0');
   ib.textContent=e.idioma==='eu'?'🇪🇺 Euskera':'🇪🇸 Gaztelania';
   document.getElementById('d-inst').textContent=e.instalacion||'—';
-  document.getElementById('d-data').textContent=fmtF(e.fecha)+(e.fechaFin?' → '+fmtF(e.fechaFin):'');
+  document.getElementById('d-data').textContent=(e.fechasExtra&&e.fechasExtra.length)?e.fechasExtra.slice().sort().map(f=>fmtFShort(f)).join(' · '):fmtF(e.fecha)+(e.fechaFin?' → '+fmtF(e.fechaFin):'');
   document.getElementById('d-ord').textContent=(e.horaIni&&e.horaFin)?e.horaIni+' – '+e.horaFin:(e.horaIni||'—');
   document.getElementById('d-ant').textContent=e.antolatzailea||'—';
   document.getElementById('d-part').textContent=e.participantes||'—';
@@ -1542,12 +1580,13 @@ async function norConfirmatu(){
     finally{loading(false);}
     renderDetaila();renderStats();renderSidebar();renderAdi();
   }else if(tipo==='edicio'){
-    const{nombre,instalacion,fecha:fdata,antName,selB,selC,editId:eid}=payload;
+    const{nombre,instalacion,fecha:fdata,fechasExtra,antName,selB,selC,editId:eid}=payload;
     const e=ekitaldiak.find(ev=>ev.id===eid);if(!e){itxiModal('modal-nor');return;}
     const newChecklistA=CK_A.map(c=>{const existing=(e.checklist||[]).find(x=>x.id===c.id);return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};});
     const newChecklistB=selB.map(c=>{const existing=(e.checklist||[]).find(x=>x.id===c.id);return existing||{id:c.id,hecho:false,nor:null,fechaEntrega:null};});
     e.nombre=nombre;e.tipo=document.getElementById('f-tipo').value;e.instalacion=instalacion;e.fecha=fdata;
-    e.fechaFin=document.getElementById('f-fecha-fin').value||'';e.horaIni=document.getElementById('f-hora-ini').value;e.horaFin=document.getElementById('f-hora-fin').value;
+    e.fechasExtra=fechasExtra||null;
+    e.fechaFin=fechasExtra?'':(document.getElementById('f-fecha-fin').value||'');e.horaIni=document.getElementById('f-hora-ini').value;e.horaFin=document.getElementById('f-hora-fin').value;
     e.antolatzailea=antName;e.idioma=document.getElementById('f-idioma').value;e.participantes=document.getElementById('f-partic').value;
     e.tasa=document.getElementById('f-tasa').value||'';e.besteak=document.getElementById('f-besteak').value;
     e.plazoAntes=parseInt(document.getElementById('f-plazo').value)||15;e.checklist=[...newChecklistA,...newChecklistB];e.checklistC=selC;
@@ -2061,6 +2100,11 @@ function abrirModalBerria(){
   document.getElementById('f-tipo').value='';document.getElementById('f-inst').value='';
   document.getElementById('f-idioma').value='eu';document.getElementById('f-plazo').value='15';
   document.getElementById('f-ant-oharra').style.display='none';
+  // Reset egun konkretuak
+  fechasExtraTmp=[];
+  document.getElementById('f-egun-konkretuak-chk').checked=false;
+  document.getElementById('f-egun-konkretuak-list').style.display='none';
+  document.getElementById('f-fecha-fin-group').style.display='';
   // Reset IA box
   const iaBox=document.getElementById('ia-eskaera-box');if(iaBox)iaBox.style.display='block';
   const iaTxt=document.getElementById('ia-eskaera-txt');if(iaTxt)iaTxt.value='';
@@ -2094,6 +2138,19 @@ function editatuEkitaldia(){
   document.getElementById('f-besteak').value=e.besteak||'';
   document.getElementById('f-notas-new').value=e.notas||'';
   document.getElementById('f-ant-oharra').style.display='none';
+  // Egun konkretuak: cargar si el evento ya tiene fechas sueltas
+  if(e.fechasExtra&&e.fechasExtra.length){
+    fechasExtraTmp=e.fechasExtra.slice();
+    document.getElementById('f-egun-konkretuak-chk').checked=true;
+    document.getElementById('f-egun-konkretuak-list').style.display='block';
+    document.getElementById('f-fecha-fin-group').style.display='none';
+    renderFechasExtra();
+  }else{
+    fechasExtraTmp=[];
+    document.getElementById('f-egun-konkretuak-chk').checked=false;
+    document.getElementById('f-egun-konkretuak-list').style.display='none';
+    document.getElementById('f-fecha-fin-group').style.display='';
+  }
   // Mark B checkboxes that are already selected
   const selB=(e.checklist||[]).map(c=>c.id).filter(id=>CK_B.find(b=>b.id===id));
   selB.forEach(id=>{
@@ -2113,7 +2170,13 @@ function editatuEkitaldia(){
 async function sortuEkitaldia(){
   const nombre=document.getElementById('f-nombre').value.trim();
   const instalacion=document.getElementById('f-inst').value;
-  const fecha=document.getElementById('f-fecha').value;
+  const egunKonkretuak=document.getElementById('f-egun-konkretuak-chk').checked;
+  let fechasExtra=null,fecha=document.getElementById('f-fecha').value;
+  if(egunKonkretuak){
+    fechasExtra=fechasExtraTmp.filter(f=>f).sort();
+    if(!fechasExtra.length){alert('Gutxienez egun konkretu bat sartu behar da.');return;}
+    fecha=fechasExtra[0];
+  }
   if(!nombre||!instalacion||!fecha){alert('Izena, instalazioa eta data beharrezkoak dira.');return;}
   const antName=document.getElementById('f-antolatzailea').value.trim();
   if(antName&&!antolatzaileak.find(a=>a.izena===antName)){
@@ -2124,7 +2187,7 @@ async function sortuEkitaldia(){
   const selC=CK_C.filter(c=>document.getElementById('reqc-'+c.id)?.classList.contains('sel')).map(c=>c.id);
 
   if(modoEdicion && editId){
-    norModal('Nor editatzen du eskaria?','edicio',{nombre,instalacion,fecha,antName,selB,selC,editId});
+    norModal('Nor editatzen du eskaria?','edicio',{nombre,instalacion,fecha,fechasExtra,antName,selB,selC,editId});
   } else {
     // CREATE new event
     const exp=genExpediente();
@@ -2132,7 +2195,7 @@ async function sortuEkitaldia(){
       ...CK_A.map(c=>({id:c.id,hecho:false,nor:null,fechaEntrega:null})),
       ...selB.map(c=>({id:c.id,hecho:false,nor:null,fechaEntrega:null})),
     ];
-    const nuevo={id:Date.now(),expediente:exp,nombre,tipo:document.getElementById('f-tipo').value,instalacion,fecha,fechaFin:document.getElementById('f-fecha-fin').value||'',horaIni:document.getElementById('f-hora-ini').value,horaFin:document.getElementById('f-hora-fin').value,antolatzailea:antName,idioma:document.getElementById('f-idioma').value,participantes:document.getElementById('f-partic').value,tasa:document.getElementById('f-tasa').value||'',besteak:document.getElementById('f-besteak').value,estado:'jasoa',plazoAntes:parseInt(document.getElementById('f-plazo').value)||15,checklist,checklistC:selC,notas:document.getElementById('f-notas-new').value,log:[{fecha:new Date().toLocaleDateString('eu-ES'),nor:'--',accion:'Ekitaldia sortu ('+exp+')'}],creado:new Date().toISOString().split('T')[0],motivoUkapen:'',erantzunGordea:''};
+    const nuevo={id:Date.now(),expediente:exp,nombre,tipo:document.getElementById('f-tipo').value,instalacion,fecha,fechaFin:egunKonkretuak?'':(document.getElementById('f-fecha-fin').value||''),fechasExtra,horaIni:document.getElementById('f-hora-ini').value,horaFin:document.getElementById('f-hora-fin').value,antolatzailea:antName,idioma:document.getElementById('f-idioma').value,participantes:document.getElementById('f-partic').value,tasa:document.getElementById('f-tasa').value||'',besteak:document.getElementById('f-besteak').value,estado:'jasoa',plazoAntes:parseInt(document.getElementById('f-plazo').value)||15,checklist,checklistC:selC,notas:document.getElementById('f-notas-new').value,log:[{fecha:new Date().toLocaleDateString('eu-ES'),nor:'--',accion:'Ekitaldia sortu ('+exp+')'}],creado:new Date().toISOString().split('T')[0],motivoUkapen:'',erantzunGordea:''};
     loading(true);
     try{await saveEv(nuevo);ekitaldiak.push(nuevo);itxiModal('modal-new');render();setTimeout(()=>abrirDetaila(nuevo.id),100);}
     catch(err){alert('Gordatzeko errorea: '+err.message);}
@@ -2157,6 +2220,7 @@ function renderCal(){
     const evs=ekitaldiak.filter(e=>{
       if(!e.fecha)return false;
       if(filtroInst&&!(e.instalacion||'').toLowerCase().includes(filtroInst))return false;
+      if(e.fechasExtra&&e.fechasExtra.length)return e.fechasExtra.includes(ds);
       if(e.fechaFin)return ds>=e.fecha&&ds<=e.fechaFin;
       return e.fecha===ds;
     });
